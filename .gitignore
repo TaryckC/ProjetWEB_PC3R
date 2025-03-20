@@ -1,0 +1,21 @@
+# Binaires et compilations
+/bin/
+*.exe
+*.out
+*.o
+
+# Modules et dépendances
+/go/
+go.sum
+
+# Cache et logs
+*.log
+*.tmp
+
+# Éditeurs
+.vscode/
+.idea/
+.DS_Store
+
+# Variables d'environnement
+.env
