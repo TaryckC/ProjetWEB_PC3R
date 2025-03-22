@@ -1,81 +1,83 @@
 package leetcodeapi
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
-type TopicTag struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-}
+// Il faudra rendre le client global pour pas avoir à en recréer un pour chaque requête. il sera à fermer à la fin du main.
 
-type Question struct {
-	AcRate             float64    `json:"acRate"`
-	Difficulty         string     `json:"difficulty"`
-	FreqBar            *float64   `json:"freqBar"`
-	FrontendQuestionID string     `json:"frontendQuestionId"`
-	IsFavor            bool       `json:"isFavor"`
-	PaidOnly           bool       `json:"paidOnly"`
-	Status             *string    `json:"status"`
-	Title              string     `json:"title"`
-	TitleSlug          string     `json:"titleSlug"`
-	HasVideoSolution   bool       `json:"hasVideoSolution"`
-	HasSolution        bool       `json:"hasSolution"`
-	TopicTags          []TopicTag `json:"topicTags"`
-}
+func RequestDailyChallenge(year int, month int) (map[string]interface{}, error) {
+	query := `
+	query questionOfToday {
+		activeDailyCodingChallengeQuestion {
+			date
+			userStatus
+			link
+			question {
+				titleSlug
+				title
+				translatedTitle
+				acRate
+				difficulty
+				freqBar
+				frontendQuestionId: questionFrontendId
+				isFavor
+				paidOnly: isPaidOnly
+				status
+				hasVideoSolution
+				hasSolution
+				topicTags {
+					name
+					id
+					slug
+				}
+			}
+		}
+	}`
 
-type ActiveDailyCodingChallengeQuestion struct {
-	Date       string   `json:"date"`
-	UserStatus string   `json:"userStatus"`
-	Link       string   `json:"link"`
-	Question   Question `json:"question"`
-}
+	payload := map[string]interface{}{
+		"operationName": "questionOfToday",
+		"query":         query,
+		"variables":     map[string]interface{}{},
+	}
 
-type APIResponse struct {
-	Data struct {
-		ActiveDailyCodingChallengeQuestion ActiveDailyCodingChallengeQuestion `json:"activeDailyCodingChallengeQuestion"`
-	} `json:"data"`
-}
-
-// https://medium.com/hprog99/working-with-json-in-golang-a-comprehensive-guide-5a94ca5961a1
-
-func RequestDailyChallenge(apiKey string) (*ActiveDailyCodingChallengeQuestion, error) {
-	url := "https://leetcode-api.p.rapidapi.com/leetcode/todays-question"
-	req, err := http.NewRequest("GET", url, nil)
+	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("server: could not create request: %v", err)
+		log.Printf("LEETCODEAPI : error when encoding daily question payload to JSON : %v\n", err)
+		return nil, err
 	}
-
-	// Header pour l'API
-	req.Header.Set("x-rapidapi-host", "leetcode-api.p.rapidapi.com") // Risque de bloquage si non réponse de rapid API ?
-	req.Header.Set("x-rapidapi-key", apiKey)
-
-	res, err := http.DefaultClient.Do(req)
+	request, err := http.NewRequest("POST", "https://leetcode.com/graphql", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, fmt.Errorf("server: request failed: %v", err)
+		log.Printf("LEETCODEAPI : error when requesting daily question : %v\n", err)
+		return nil, err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("server: API returned status %d", res.StatusCode)
-	}
-
-	body, err := io.ReadAll(res.Body)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Referer", "https://leetcode.com")
+	request.Header.Set("User-Agent", "Mozilla/5.0 (compatible; LeetCodeBot/1.0)")
+	client := &http.Client{}
+	response, err := client.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("server: could not read response: %v", err)
+		log.Printf("LEETCODEAPI : error sending HTTP request to API  : %v\n", err)
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Printf("LEETCODEAPI : error reading response body : %v\n", err)
+		return nil, err
 	}
 
-	var apiResponse APIResponse
-	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		return nil, fmt.Errorf("server: could not parse JSON: %v", err)
+	var result map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Printf("LEETCODEAPI : raw body: %s\n", body)
+		log.Printf("LEETCODEAPI : error decoding JSON response : %v\n", err)
+		return nil, err
 	}
-
-	return &apiResponse.Data.ActiveDailyCodingChallengeQuestion, nil
+	return result, nil
 }
-
-// https://www.digitalocean.com/community/tutorials/how-to-make-http-requests-in-go
-// https://pkg.go.dev/net/http#hdr-Clients_and_Transports
