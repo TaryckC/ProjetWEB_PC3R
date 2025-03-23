@@ -4,6 +4,7 @@ function Container({ children, id }) {
     return (
         <div id={id} className="container">
             {children}
+            
         </div>
     )
 }

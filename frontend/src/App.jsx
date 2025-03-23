@@ -1,26 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import NavBar from './components/Navbar'
-import Container from './components/Container'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebaseAuth";
+import MailConf from "./pages/MailConfirmationPage";
+import Home from './pages/HomePage';
+import Login from './pages/LoginPage';
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      console.log(currentUser.emailVerified)
+      
+    });
+
+    return () => unsub();
+  }, []);
+
   return (
-    <>
-      <div id="home-page">
-        <NavBar />
-        <div id="home-double-container">
-          <Container id="box-blue">
-            <h1>Premier Container</h1>
-          </Container>
-          <Container id="box-pink">
-            <h1>Deuxième Container</h1>
-          </Container>
-        </div>
-      </div>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        
+        <Route
+          path="/HomePage"
+          element={
+            <PrivateRoute user={user}>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/MailConfirmationPage" element={<MailConf />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
+// code de route derivé de stackoverflow
