@@ -8,7 +8,9 @@ import (
 	"net/http"
 )
 
-// Il faudra rendre le client global pour pas avoir à en recréer un pour chaque requête. il sera à fermer à la fin du main.
+// TODO - Il faudra rendre le client global pour pas avoir à en recréer un pour chaque requête. il sera à fermer à la fin du main.
+
+// TODO - Demander au prof s'il ne serait pas plus intéressant de requêter directement depuis le frontend
 
 func RequestDailyChallenge(year int, month int) (map[string]interface{}, error) {
 	query := `

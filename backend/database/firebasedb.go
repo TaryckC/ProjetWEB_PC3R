@@ -16,7 +16,7 @@ var FirestoreClient *firestore.Client
 func InitFireBase() {
 
 	opt := option.WithCredentialsFile("keys/serviceAccountKey.json")
-	config := &firebase.Config{ProjectID: "projetwebpc3r"}
+	config := &firebase.Config{ProjectID: "pc3rprojet-ce4a7"}
 	app, err := firebase.NewApp(context.Background(), config, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
