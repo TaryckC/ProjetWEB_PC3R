@@ -6,6 +6,8 @@ import MailConf from "./pages/MailConfirmationPage";
 import Home from './pages/HomePage';
 import Login from './pages/LoginPage';
 import PrivateRoute from "./components/PrivateRoute";
+import SignUP from "./pages/SignUpPage";
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -13,8 +15,6 @@ function App() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      console.log(currentUser.emailVerified)
-      
     });
 
     return () => unsub();
@@ -34,6 +34,7 @@ function App() {
           }
         />
         <Route path="/MailConfirmationPage" element={<MailConf />} />
+        <Route path="/SignUpPage" element={<SignUP />} />
       </Routes>
     </Router>
   );

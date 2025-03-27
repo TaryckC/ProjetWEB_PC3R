@@ -8,9 +8,9 @@ export default function PrivateRoute({ user, children }) {
     console.log("Private route no login")
     return <Navigate to="/" />;
   }
-  // if(!user.emailVerified){
-  //   console.log("Private route no mail conf")
-  //   return <Navigate to="/MailConfirmationPage" />;
-  // }
+  if(!user.emailVerified){
+    console.log("Private route no mail conf")
+    return <Navigate to="/MailConfirmationPage" />;
+  }
   return children;
 }
