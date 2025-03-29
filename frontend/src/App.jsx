@@ -24,10 +24,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Login />} />
         
         <Route
-          path="/Login"
+          path="/HomePage"
           element={
             <PrivateRoute user={user}>
               <Home />

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../css/LoginPage.css";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebaseAuth";
 import { useNavigate } from "react-router-dom";
