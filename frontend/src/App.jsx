@@ -7,16 +7,17 @@ import Home from './pages/HomePage';
 import Login from './pages/LoginPage';
 import PrivateRoute from "./components/PrivateRoute";
 import SignUP from "./pages/SignUpPage";
+import ResetPassword from "./pages/PasswordResetPage";
 
 
 function App() {
   const [user, setUser] = useState(null);
-
+ 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
+  
     return () => unsub();
   }, []);
 
@@ -35,6 +36,7 @@ function App() {
         />
         <Route path="/MailConfirmationPage" element={<MailConf />} />
         <Route path="/SignUpPage" element={<SignUP />} />
+        <Route path="/PasswordResetPage" element={<ResetPassword/>}/>
       </Routes>
     </Router>
   );

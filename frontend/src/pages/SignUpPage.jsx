@@ -2,7 +2,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebaseAuth";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"
+import "../css/LoginPage.css"
 
 export default function SignUP() {
   const [email, setEmail] = useState("");
@@ -15,6 +15,7 @@ export default function SignUP() {
     try {
       await createUserWithEmailAndPassword(auth, email, password).then((currentUser)=>{
          sendEmailVerification(currentUser.user);
+         navigate("/MailConfirmationPage");
       });
       alert("Inscription réussie !");
     } catch (error) {
