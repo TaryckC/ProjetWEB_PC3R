@@ -3,6 +3,7 @@ package leetcodeapi
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,90 @@ import (
 // TODO - Il faudra rendre le client global pour pas avoir à en recréer un pour chaque requête. il sera à fermer à la fin du main.
 
 // TODO - Demander au prof s'il ne serait pas plus intéressant de requêter directement depuis le frontend
+
+const leetcodeGraphQLEndpoint = "https://leetcode.com/graphql"
+
+type questionResponse struct {
+	Data struct {
+		Question struct {
+			Content string `json:"content"`
+		} `json:"question"`
+	} `json:"data"`
+}
+
+type GraphQLRequest struct {
+	Query         string                 `json:"query"`
+	OperationName string                 `json:"operationName,omitempty"`
+	Variables     map[string]interface{} `json:"variables"`
+}
+
+func DoGraphQLRequest(res GraphQLRequest) ([]byte, error) {
+	body, err := json.Marshal(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode GraphQL request: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", leetcodeGraphQLEndpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Referer", "https://leetcode.com")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; LeetCodeBot/1.0)")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("leetcode API error: %s", string(respBody))
+	}
+
+	return respBody, nil
+}
+
+func RequestChallengeDescription(slug string) (string, error) {
+	query := `
+		query getDescription($titleSlug: String!) {
+			question(titleSlug: $titleSlug) {
+				content
+			}
+		}
+	`
+
+	request := GraphQLRequest{
+		Query: query,
+		Variables: map[string]interface{}{
+			"titleSlug": slug,
+		},
+	}
+
+	respBody, err := DoGraphQLRequest(request)
+	if err != nil {
+		return "", err
+	}
+
+	var parsed questionResponse
+	err = json.Unmarshal(respBody, &parsed)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	if parsed.Data.Question.Content == "" {
+		log.Println("LEETCODEAPI : description is empty (question not found or not accessible)")
+		return "", fmt.Errorf("no description found for slug %q", slug)
+	}
+
+	return parsed.Data.Question.Content, nil
+}
 
 func RequestDailyChallenge(year int, month int) (map[string]interface{}, error) {
 	query := `
@@ -41,43 +126,22 @@ func RequestDailyChallenge(year int, month int) (map[string]interface{}, error) 
 		}
 	}`
 
-	payload := map[string]interface{}{
-		"operationName": "questionOfToday",
-		"query":         query,
-		"variables":     map[string]interface{}{},
+	request := GraphQLRequest{
+		Query:         query,
+		OperationName: "questionOfToday",
+		Variables:     map[string]interface{}{},
 	}
 
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("LEETCODEAPI : error when encoding daily question payload to JSON : %v\n", err)
-		return nil, err
-	}
-	request, err := http.NewRequest("POST", "https://leetcode.com/graphql", bytes.NewBuffer(jsonData))
+	respBody, err := DoGraphQLRequest(request)
 	if err != nil {
 		log.Printf("LEETCODEAPI : error when requesting daily question : %v\n", err)
 		return nil, err
 	}
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Referer", "https://leetcode.com")
-	request.Header.Set("User-Agent", "Mozilla/5.0 (compatible; LeetCodeBot/1.0)")
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		log.Printf("LEETCODEAPI : error sending HTTP request to API  : %v\n", err)
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		log.Printf("LEETCODEAPI : error reading response body : %v\n", err)
-		return nil, err
-	}
 
 	var result map[string]interface{}
-	err = json.Unmarshal(body, &result)
+	err = json.Unmarshal(respBody, &result)
 	if err != nil {
-		log.Printf("LEETCODEAPI : raw body: %s\n", body)
+		log.Printf("LEETCODEAPI : raw body: %s\n", respBody)
 		log.Printf("LEETCODEAPI : error decoding JSON response : %v\n", err)
 		return nil, err
 	}
