@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/base64"
@@ -30,7 +30,7 @@ func LoadEnv() {
 }
 
 func GetApiKey() (string, error) {
-	apiKey := os.Getenv("JUDGE0_API_KEY")
+	apiKey := os.Getenv("RAPID_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("Clé API Judge0 manquante")
 	}
