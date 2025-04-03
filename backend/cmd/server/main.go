@@ -1,11 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	compiler "projetweb/backend/api/judge0api"
 	news "projetweb/backend/api/news_api"
 )
+
+func enableCors(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(w)
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Hello from Go!",
+	})
+}
 
 func main() {
 	// firebaseService, err := database.InitFireBase()
@@ -20,6 +39,7 @@ func main() {
 	// firebaseService.Client.Close()
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 
+	http.HandleFunc("/api/hello", helloHandler)
 	http.HandleFunc("/api/news", news.HandleNews)
 	http.HandleFunc("/api/compile", compiler.HandleCompiler)
 	fmt.Println("Serveur en écoute sur :8080")
