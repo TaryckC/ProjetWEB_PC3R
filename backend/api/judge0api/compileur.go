@@ -115,7 +115,10 @@ func HandleCompiler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := ExecuteCode(req.SourceCode, req.LanguageID, req.Stdin)
+	sourceCodeEncoded := utils.ToBase64(req.SourceCode)
+	stdin := utils.ToBase64(req.Stdin)
+
+	token, err := ExecuteCode(sourceCodeEncoded, req.LanguageID, stdin)
 	if err != nil {
 		http.Error(w, "Erreur lors de la soumission : "+err.Error(), http.StatusInternalServerError)
 		return

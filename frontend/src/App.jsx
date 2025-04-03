@@ -8,8 +8,8 @@ import Login from './pages/LoginPage';
 import PrivateRoute from "./components/PrivateRoute";
 import SignUP from "./pages/SignUpPage";
 import ResetPassword from "./pages/PasswordResetPage";
-
-
+import CodeEditor from "./pages/testBackend";
+import IDE from "./pages/IdePage";
 function App() {
   const [user, setUser] = useState(null);
  
@@ -24,7 +24,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<IDE />} />
         
         <Route
           path="/HomePage"
