@@ -35,3 +35,17 @@ type DailyChallenge struct {
 		ActiveDailyCodingChallengeQuestion ActiveDailyCodingChallenge `firestore:"activeDailyCodingChallengeQuestion"`
 	} `firestore:"data"`
 }
+
+// Challenge quelconque
+type MinimalQuestion struct {
+	FrontendID string `firestore:"questionFrontendId" json:"questionFrontendId"`
+	Title      string `firestore:"title" json:"title"`
+	TitleSlug  string `firestore:"titleSlug" json:"titleSlug"`
+	UserStatus string `firestore:"userStatus" json:"userStatus"`
+}
+
+type ChallengeItem struct {
+	Date     string          `firestore:"date" json:"date"`
+	Link     string          `firestore:"link" json:"link"`
+	Question MinimalQuestion `firestore:"question" json:"question"`
+}

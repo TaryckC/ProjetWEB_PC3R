@@ -11,8 +11,6 @@ import (
 
 // TODO - Il faudra rendre le client global pour pas avoir à en recréer un pour chaque requête. il sera à fermer à la fin du main.
 
-// TODO - Demander au prof s'il ne serait pas plus intéressant de requêter directement depuis le frontend
-
 const leetcodeGraphQLEndpoint = "https://leetcode.com/graphql"
 
 type questionResponse struct {
@@ -145,5 +143,59 @@ func RequestDailyChallenge(year int, month int) (map[string]interface{}, error) 
 		log.Printf("LEETCODEAPI : error decoding JSON response : %v\n", err)
 		return nil, err
 	}
+	return result, nil
+}
+
+func RequestChallengeList(year int, month int) (map[string]interface{}, error) {
+	query := `
+	query dailyCodingQuestionRecords($year: Int!, $month: Int!) {
+		dailyCodingChallengeV2(year: $year, month: $month) {
+			challenges {
+				date
+				userStatus
+				link
+				question {
+					questionFrontendId
+					title
+					titleSlug
+				}
+			}
+			weeklyChallenges {
+				date
+				userStatus
+				link
+				question {
+					questionFrontendId
+					title
+					titleSlug
+					isPaidOnly
+				}
+			}
+		}
+	}`
+
+	request := GraphQLRequest{
+		Query:         query,
+		OperationName: "dailyCodingQuestionRecords",
+		Variables: map[string]interface{}{
+			"year":  year,
+			"month": month,
+		},
+	}
+
+	respBody, err := DoGraphQLRequest(request)
+	if err != nil {
+		log.Printf("LEETCODEAPI : error when requesting challenge list : %v\n", err)
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(respBody, &result)
+	if err != nil {
+		log.Printf("LEETCODEAPI : raw body: %s\n", respBody)
+		log.Printf("LEETCODEAPI : error decoding JSON response : %v\n", err)
+		return nil, err
+	}
+
 	return result, nil
 }
