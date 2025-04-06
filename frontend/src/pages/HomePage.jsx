@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import Container from "../components/Container";
 import NavBar from "../components/Navbar";
+import DailyChallenge from "../components/dailyChallenge";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -22,11 +23,7 @@ export default function Home() {
         <>
             <NavBar />
             <div className="flex flex-row justify-center items-start gap-6 px-4 mt-8">
-                <Container bgColor="bg-gray-100">
-                    <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
-                        Bienvenue à la page d'accueil !
-                    </h1>
-                </Container>
+                <DailyChallenge />
 
                 <Container bgColor="bg-gray-200">
                     <button
