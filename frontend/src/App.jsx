@@ -11,20 +11,27 @@ import ResetPassword from "./pages/PasswordResetPage";
 import CodeEditor from "./pages/testBackend";
 import IDE from "./pages/IdePage";
 function App() {
+  
   const [user, setUser] = useState(null);
- 
+  const [authChecked, setAuthChecked] = useState(false);
+  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setAuthChecked(true); // ✅ maintenant on sait si on est connecté ou pas
     });
   
     return () => unsub();
   }, []);
 
+  if (!authChecked) {
+    return <h1>Chargement de la page d'acceuil...</h1>;
+  }
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<IDE />} />
+        <Route path="/" element={<Login />} />
         
         <Route
           path="/HomePage"

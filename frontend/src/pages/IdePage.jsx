@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import Editor from "@monaco-editor/react";
+// import Editor from "@monaco-editor/react";
+const Editor = () => <div style={{ color: "red" }}>Editor not loaded</div>;
 
-// Les templates en été generés par chatgpt
+// Les templates ont étés generés par chatgpt
 const templates = {
   javascript: `function main() {
   console.log("Hello, world!");

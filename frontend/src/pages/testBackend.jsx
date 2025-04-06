@@ -18,16 +18,17 @@ import { useEffect, useState } from "react";
 //     );
 // }
 
-import Editor from "@monaco-editor/react";
+//import Editor from "@monaco-editor/react";
 
 export default function CodeEditor() {
-  return (
-    <Editor
-      height="500px"
-      defaultLanguage="python"
-      defaultValue="// Écris ton code ici"
-      theme="vs-dark"
-    />
-  );
+  // return (
+  //   <Editor
+  //     height="500px"
+  //     defaultLanguage="python"
+  //     defaultValue="// Écris ton code ici"
+  //     theme="vs-dark"
+  //   />
+  // );
+  return (<></>);
 }
 

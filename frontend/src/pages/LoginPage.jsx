@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 
 import { useNavigate } from "react-router-dom";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { provider,auth } from "../firebaseAuth";
 
 export default function Login() {
@@ -15,11 +15,10 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password).then((currentUser)=>{
-        alert("Connexion réussie !");
-        navigate("/HomePage");
-      });
-      
+      await setPersistence(auth, browserLocalPersistence)
+      await signInWithEmailAndPassword(auth, email, password)
+      alert("Connexion réussie.")
+      navigate("/HomePage")
     } catch (error) {
       alert(error.message);
     }
