@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import Container from "../components/Container";
 import NavBar from "../components/Navbar";
-import DailyChallenge from "../components/dailyChallenge";
+import ChallengePresentation from "../components/ChallengePresentation";
 
 export default function Home() {
     const navigate = useNavigate();
@@ -23,17 +23,7 @@ export default function Home() {
         <>
             <NavBar />
             <div className="flex flex-row justify-center items-start gap-6 px-4 mt-8">
-                <DailyChallenge />
-
-                <Container bgColor="bg-gray-200">
-                    <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-400"
-                    >
-                        Déconnexion
-                    </button>
-                </Container>
+                <ChallengePresentation />
             </div>
         </>
     );
