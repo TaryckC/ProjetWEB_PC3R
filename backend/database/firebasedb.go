@@ -13,7 +13,9 @@ import (
 )
 
 const (
-	DailyChallengeDoc    = "daily_challenge"
+	DailyChallengeDoc  = "daily_challenge"
+	Daily_challenge_id = "0"
+
 	WeeklyChallengesDoc  = "weekly_challenges"
 	ClassicChallengesDoc = "classic_challenges"
 	FirestoreCollection  = "Challenges"
@@ -64,20 +66,22 @@ func (fs *FirebaseService) WriteDailyChallenge(year int, month int) error {
 	if err != nil {
 		return fmt.Errorf("LEETCODEAPI : Error fetching daily challenge : %v", err)
 	}
-	_, err = fs.Client.Collection(FirestoreCollection).Doc(DailyChallengeDoc).Set(context.Background(), challenge)
-	if err != nil {
+
+	challengeData := challenge["data"].(map[string]interface{})
+	activeChallenge := challengeData["activeDailyCodingChallengeQuestion"].(map[string]interface{})
+	if fs.writeChallenge(DailyChallengeDoc, Daily_challenge_id, activeChallenge) != nil {
 		return fmt.Errorf("FIREBASE : Error writing daily challenge : %v", err)
 	}
 	return nil
 }
 
-func (fs *FirebaseService) getDailyChallengeFromDataBase() (*leetcodeapi.DailyChallenge, *firestore.DocumentSnapshot, error) {
-	doc, err := fs.Client.Collection(FirestoreCollection).Doc(DailyChallengeDoc).Get(context.Background())
+func (fs *FirebaseService) getDailyChallengeFromDataBase() (*leetcodeapi.ActiveDailyCodingChallenge, *firestore.DocumentSnapshot, error) {
+	doc, err := fs.Client.Collection(DailyChallengeDoc).Doc(Daily_challenge_id).Get(context.Background())
 	if err != nil {
 		return nil, nil, fmt.Errorf("FIRESTORE : failed to read daily challenge: %v", err)
 	}
 
-	challenge := new(leetcodeapi.DailyChallenge)
+	challenge := new(leetcodeapi.ActiveDailyCodingChallenge)
 	if err := doc.DataTo(challenge); err != nil {
 		return nil, doc, fmt.Errorf("FIRESTORE : failed to decode daily challenge: %v", err)
 	}
@@ -99,7 +103,7 @@ func (fs *FirebaseService) UpdateDailyQuestionDescription() error {
 		return fmt.Errorf("FIRESTORE : failed to fetch daily challenge: %v", err)
 	}
 
-	titleSlug := challenge.Data.ActiveDailyCodingChallengeQuestion.Question.TitleSlug
+	titleSlug := challenge.Question.TitleSlug
 
 	description, err := leetcodeapi.RequestChallengeDescription(titleSlug)
 	if err != nil {
@@ -108,7 +112,7 @@ func (fs *FirebaseService) UpdateDailyQuestionDescription() error {
 
 	_, err = doc.Ref.Update(context.Background(), []firestore.Update{
 		{
-			Path:  "activeDailyCodingChallengeQuestion.question.description",
+			Path:  "question.description",
 			Value: description,
 		},
 	})
