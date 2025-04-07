@@ -30,12 +30,6 @@ type ActiveDailyCodingChallenge struct {
 	Question Question `firestore:"question"`
 }
 
-type DailyChallenge struct {
-	Data struct {
-		ActiveDailyCodingChallengeQuestion ActiveDailyCodingChallenge `firestore:"activeDailyCodingChallengeQuestion"`
-	} `firestore:"data"`
-}
-
 // Challenge quelconque
 type MinimalQuestion struct {
 	FrontendID string `firestore:"questionFrontendId" json:"questionFrontendId"`

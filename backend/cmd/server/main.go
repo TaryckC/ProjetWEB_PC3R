@@ -34,8 +34,8 @@ func main() {
 	}
 	firebaseService.WriteDailyChallenge(2025, 4)
 	firebaseService.UpdateDailyQuestionDescription()
-	firebaseService.WriteDailyAndWeeklyChallenges(2025, 4)
-	firebaseService.WriteChallengeComplementaryData()
+	//firebaseService.WriteDailyAndWeeklyChallenges(2025, 4)
+	//firebaseService.WriteChallengeComplementaryData()
 	http.HandleFunc("/", handlers.HandleRoot)
 
 	fmt.Println("Server running on http://localhost:8080")
