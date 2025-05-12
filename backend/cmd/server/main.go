@@ -7,7 +7,11 @@ import (
 	"net/http"
 	"projetweb/backend/database"
 	"projetweb/backend/internal/handlers"
+
+	"github.com/gorilla/mux"
 )
+
+var FirebaseService *database.FirebaseService
 
 func enableCors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -27,25 +31,41 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func setUpLeetCodeAPIRoute(r *mux.Router) {
+	r.HandleFunc("/", handlers.HandleRoot).Methods("GET")
+	r.HandleFunc("/classic-challenges", database.GetAllClassicChallenges).Methods("GET")
+	r.HandleFunc("/classic-challenges/{id}", database.GetClassicChallenge).Methods("GET")
+	r.HandleFunc("/daily-challenge", database.GetTodayChallenge).Methods("GET")
+}
+
 func main() {
-	firebaseService, err := database.InitFireBase()
+	var err error
+	FirebaseService, err = database.InitFireBase()
 	if err != nil {
 		log.Fatalf("Erreur lors de l'initialisation de la base de données : %v", err)
 	}
-	firebaseService.WriteDailyChallenge(2025, 4)
-	firebaseService.UpdateDailyQuestionDescription()
-	//firebaseService.WriteDailyAndWeeklyChallenges(2025, 4)
-	//firebaseService.WriteChallengeComplementaryData()
-	http.HandleFunc("/", handlers.HandleRoot)
+	database.GlobalFirebaseService = FirebaseService
+	// FirebaseService.WriteDailyChallenge(2025, 5)
+	// FirebaseService.UpdateDailyQuestionDescription()
+	// FirebaseService.WriteDailyAndWeeklyChallenges(2025, 4)
+	// FirebaseService.WriteChallengeComplementaryData()
+	r := mux.NewRouter()
+	r.Use(middlewareCors)
+
+	setUpLeetCodeAPIRoute(r)
 
 	fmt.Println("Server running on http://localhost:8080")
-	firebaseService.Client.Close()
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	defer FirebaseService.Client.Close()
+	log.Fatal(http.ListenAndServe(":8080", r))
 
-	// http.HandleFunc("/api/hello", helloHandler)
-	// http.HandleFunc("/api/news", news.HandleNews)
-	// http.HandleFunc("/api/compile", compiler.HandleCompiler)
-	// fmt.Println("Serveur en écoute sur :8080")
-	// http.ListenAndServe(":8080", nil)
+}
 
+func middlewareCors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
