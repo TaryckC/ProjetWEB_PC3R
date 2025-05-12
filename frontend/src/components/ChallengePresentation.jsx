@@ -10,7 +10,7 @@ const CHALLENGE_TYPES = {
   },
   CLASSIC: {
     key: "classic_challenges",
-    ids: ["0","1", "2", "3", "4", "5", "6"]
+    ids: ["0", "1", "2", "3", "4", "5", "6"]
   }
 };
 
@@ -26,7 +26,7 @@ async function fetchChallenges(type) {
   return challenges;
 }
 
-export function ChallengeBubble({ challenge, type}) {
+export function ChallengeBubble({ challenge, type }) {
   console.log("ChallengeBubble rendu :", { challenge, type });
 
   useEffect(() => {
@@ -38,25 +38,25 @@ export function ChallengeBubble({ challenge, type}) {
 
   if (type == CHALLENGE_TYPES.CLASSIC.key) {
     return (
-        <div className="bg-white p-4 rounded shadow-md w-full max-w-xl">
-          <h2 className="text-1xl font-semibold text-gray-800 mb-2">
-            {data.title}
-          </h2>
-        </div>
+      <div className="bg-blue-100 p-4 rounded shadow-md w-full max-w-xl hover:bg-blue-400 transition-colors duration-300 cursor-pointer">
+        <h2 className="text-1xl font-semibold text-gray-800 mb-2">
+          {data.title}
+        </h2>
+      </div>
     );
   }
   return (
-      <div className="bg-white p-4 rounded shadow-md w-full max-w-xl">
-        <h5 className="text-1xl font-semibold text-gray-800 mb-2">
-          {data.title}
-        </h5>
-        <p className="text-sm text-gray-500 mb-1">
-          Difficulté : {data.difficulty || "N/A"}
-        </p>
-        <p className="text-sm text-gray-500 mb-4">
-          Taux de réussite : {data.acRate?.toFixed(2) || "N/A"}%
-        </p>
-      </div>
+<div className="bg-orange-200 p-4 rounded shadow-md w-full max-w-xl hover:bg-orange-600 transition-colors duration-300 cursor-pointer">
+      <h5 className="text-1xl font-semibold text-gray-800 mb-2">
+      {data.title}
+    </h5>
+      <p className="text-sm text-gray-500 mb-1">
+        Difficulté : {data.difficulty || "N/A"}
+      </p>
+      <p className="text-sm text-gray-500 mb-4">
+        Taux de réussite : {data.acRate?.toFixed(2) || "N/A"}%
+      </p>
+    </div>
   );
 }
 
@@ -73,11 +73,11 @@ export default function ChallengePresentation() {
       .catch(console.error);
 
     fetchChallenges(CHALLENGE_TYPES.CLASSIC.key)
-    .then((res) => {
-      console.log("classic =>", res);
-      setClassicChallenges(res);
-    })
-    .catch(console.error);
+      .then((res) => {
+        console.log("classic =>", res);
+        setClassicChallenges(res);
+      })
+      .catch(console.error);
   }, []);
 
   return (
