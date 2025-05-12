@@ -23,6 +23,8 @@ const (
 	FirebaseKeyPath      = "keys/serviceAccountKey.json"
 )
 
+var GlobalFirebaseService *FirebaseService
+
 // TODO : Va falloir réorganiser la BDD :
 /*
 *  Challenges -> TYPES (3+?) -> challenges -> data
@@ -48,10 +50,10 @@ func InitFireBase() (*FirebaseService, error) {
 	}
 	log.Println("Client Firestore créé.")
 
-	return &FirebaseService{
-		App:    app,
-		Client: client,
-	}, nil
+	res := &FirebaseService{App: app, Client: client}
+	GlobalFirebaseService = res
+
+	return res, nil
 }
 
 // TODO : Peut-être plus tard stocker la référence dans une variable ?
@@ -169,7 +171,7 @@ func (fs *FirebaseService) WriteDailyAndWeeklyChallenges(year int, month int) er
 	return nil
 }
 
-func (fs *FirebaseService) getChallengeFromDataBase(collection string, doc string) (*leetcodeapi.ChallengeItem, *firestore.DocumentSnapshot, error) {
+func (fs *FirebaseService) GetChallengeFromDataBase(collection string, doc string) (*leetcodeapi.ChallengeItem, *firestore.DocumentSnapshot, error) {
 	_doc, err := fs.Client.Collection(collection).Doc(doc).Get(context.Background())
 	if err != nil {
 		return nil, nil, fmt.Errorf("FIRESTORE : failed to read daily challenge: %v", err)
@@ -187,7 +189,7 @@ func (fs *FirebaseService) getChallengeFromDataBase(collection string, doc strin
 // Ecrire une foction update/ecrire description pour chaque différents type de challenges
 
 func (fs *FirebaseService) UpdateChallengeDescription(collection string, doc string) error {
-	challenge, _doc, err := fs.getChallengeFromDataBase(collection, doc)
+	challenge, _doc, err := fs.GetChallengeFromDataBase(collection, doc)
 	if err != nil {
 		return fmt.Errorf("FIRESTORE : failed to fetch daily challenge: %v", err)
 	}

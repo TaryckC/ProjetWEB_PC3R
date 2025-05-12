@@ -32,10 +32,11 @@ type ActiveDailyCodingChallenge struct {
 
 // Challenge quelconque
 type MinimalQuestion struct {
-	FrontendID string `firestore:"questionFrontendId" json:"questionFrontendId"`
-	Title      string `firestore:"title" json:"title"`
-	TitleSlug  string `firestore:"titleSlug" json:"titleSlug"`
-	UserStatus string `firestore:"userStatus" json:"userStatus"`
+	FrontendID  string `firestore:"questionFrontendId" json:"questionFrontendId"`
+	Title       string `firestore:"title" json:"title"`
+	TitleSlug   string `firestore:"titleSlug" json:"titleSlug"`
+	UserStatus  string `firestore:"userStatus" json:"userStatus"`
+	Description string `firestore:"description" json:"description"`
 }
 
 type ChallengeItem struct {
