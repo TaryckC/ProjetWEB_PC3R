@@ -14,7 +14,7 @@ export default function Home() {
             await signOut(auth);
             navigate("/LoginPage");
             alert("Déconnexion réussie !");
-        } catch (error) {
+        } catch (error) { 
             alert(error.message);
         }
     };

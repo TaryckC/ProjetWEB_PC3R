@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../firebaseAuth";
 import Container from "./Container";
 
 const CHALLENGE_TYPES = {
@@ -15,15 +13,16 @@ const CHALLENGE_TYPES = {
 };
 
 async function fetchChallenges(type) {
-  const collectionRef = collection(db, type);
-  const snapshot = await getDocs(collectionRef);
+  const endpoint = type === CHALLENGE_TYPES.DAILY.key
+    ? "http://localhost:8080/daily-challenge"
+    : "http://localhost:8080/classic-challenges";
 
-  const challenges = [];
-  snapshot.forEach(doc => {
-    challenges.push({ id: doc.id, ...doc.data() });
-  });
+  const response = await fetch(endpoint);
+  if (!response.ok) throw new Error(`Erreur lors de la récupération des données : ${response.statusText}`);
 
-  return challenges;
+  const data = await response.json();
+
+  return Array.isArray(data) ? data : [data];
 }
 
 export function ChallengeBubble({ challenge, type }) {
@@ -33,7 +32,7 @@ export function ChallengeBubble({ challenge, type }) {
     console.log("ChallengeBubble mounted/updated =>", { challenge, type });
   }, [challenge, type]);
 
-  const data = challenge.question ?? challenge; // fallback sur root si pas de .question
+  const data = challenge.question ?? challenge;
   if (!data.title) return null;
 
   if (type == CHALLENGE_TYPES.CLASSIC.key) {
