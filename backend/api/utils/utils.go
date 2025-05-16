@@ -5,10 +5,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
 )
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+
+
+func WriteJSONError(w http.ResponseWriter, statusCode int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(ErrorResponse{Error: message})
+}
 
 func ToBase64(code string) string {
 	return base64.StdEncoding.EncodeToString([]byte(code))
@@ -25,9 +38,13 @@ func FromBase64(encoded string) (string, error) {
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Erreur lors du chargement du fichier .env")
+		log.Println("⚠️ ERREUR: .env introuvable")
+	} else {
+		log.Println("✅ .env chargé")
+		log.Println("clé =", os.Getenv("JUDGE0_API_KEY"))
 	}
 }
+
 
 func GetApiKey() (string, error) {
 	apiKey := os.Getenv("RAPID_API_KEY")

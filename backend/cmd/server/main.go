@@ -38,6 +38,14 @@ func setUpLeetCodeAPIRoute(r *mux.Router) {
 	r.HandleFunc("/daily-challenge", database.GetTodayChallenge).Methods("GET")
 }
 
+func setUpCompilerRoutes(r *mux.Router) {
+	r.HandleFunc("/compile", handlers.HandleCompiler).Methods("POST")
+}
+
+func setUpNewsRoutes(r *mux.Router) {
+	r.HandleFunc("/news", handlers.HandleNews).Methods("GET")
+}
+
 func main() {
 	var err error
 	FirebaseService, err = database.InitFireBase()
@@ -53,7 +61,8 @@ func main() {
 	r.Use(middlewareCors)
 
 	setUpLeetCodeAPIRoute(r)
-
+	setUpCompilerRoutes(r)
+	setUpNewsRoutes(r)
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
 	log.Fatal(http.ListenAndServe(":8080", r))
@@ -64,6 +73,7 @@ func middlewareCors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enableCors(w)
 		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 		next.ServeHTTP(w, r)
