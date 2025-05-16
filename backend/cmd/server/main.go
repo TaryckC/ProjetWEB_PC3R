@@ -36,6 +36,8 @@ func setUpLeetCodeAPIRoute(r *mux.Router) {
 	r.HandleFunc("/classic-challenges", database.GetAllClassicChallenges).Methods("GET")
 	r.HandleFunc("/classic-challenges/{id}", database.GetClassicChallenge).Methods("GET")
 	r.HandleFunc("/daily-challenge", database.GetTodayChallenge).Methods("GET")
+	r.HandleFunc("/challengeContent/{titleSlug}", database.GetChallengeContent).Methods("GET")
+	r.HandleFunc("/challengeContent/{titleSlug}", database.FetchAndStoreChallengeContent).Methods("POST")
 }
 
 func setUpCompilerRoutes(r *mux.Router) {

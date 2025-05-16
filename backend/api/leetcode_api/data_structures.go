@@ -44,3 +44,24 @@ type ChallengeItem struct {
 	Link     string          `firestore:"link" json:"link"`
 	Question MinimalQuestion `firestore:"question" json:"question"`
 }
+
+type QuestionData struct {
+	Data struct {
+		Question QuestionDetail `json:"question"`
+	} `json:"data"`
+}
+
+type QuestionDetail struct {
+	QuestionID   string        `json:"questionId"`
+	Title        string        `json:"title"`
+	TitleSlug    string        `json:"titleSlug"`
+	Content      string        `json:"content"`
+	Difficulty   string        `json:"difficulty"`
+	CodeSnippets []CodeSnippet `json:"codeSnippets"`
+}
+
+type CodeSnippet struct {
+	Lang     string `json:"lang"`
+	LangSlug string `json:"langSlug"`
+	Code     string `json:"code"`
+}

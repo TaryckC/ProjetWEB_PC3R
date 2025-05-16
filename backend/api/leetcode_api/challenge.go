@@ -199,3 +199,43 @@ func RequestChallengeList(year int, month int) (map[string]interface{}, error) {
 
 	return result, nil
 }
+
+func RequestQuestionsData(titleSlug string) (map[string]interface{}, error) {
+	query := `
+	query questionData($titleSlug: String!) {
+		question(titleSlug: $titleSlug) {
+			questionId
+			title
+			titleSlug
+			content
+			difficulty
+			codeSnippets {
+				lang
+				langSlug
+				code
+			}
+		}
+	}`
+
+	request := GraphQLRequest{
+		Query:         query,
+		OperationName: "questionData",
+		Variables:     map[string]interface{}{"titleSlug": titleSlug},
+	}
+
+	respBody, err := DoGraphQLRequest(request)
+	if err != nil {
+		log.Printf("LEETCODE : error when requesting for challenge's questions data : %v\n", err)
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(respBody, &result)
+	if err != nil {
+		log.Printf("LEETCODEAPI : raw body: %s\n", respBody)
+		log.Printf("LEETCODEAPI : error decoding JSON response : %v\n", err)
+		return nil, err
+	}
+
+	return result, nil
+}
