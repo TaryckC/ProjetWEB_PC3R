@@ -13,6 +13,62 @@ import (
 // API REST PERMETTANT LES OPÉRATION DE BASES SUR LES STRUCTURES DE DONNÉES ASSOCIÉES À L'API LEETCODE
 
 /**
+* GENERIC OPERATIONS
+**/
+
+// GetChallengeContent essaye de récupérer le contenu du challenge.
+func GetChallengeContent(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	titleSlug := vars["titleSlug"]
+	content, err := findChallengeContentBySlug(titleSlug)
+	if err != nil {
+		http.Error(w, "Erreur lors de la récupération des contenus", http.StatusInternalServerError)
+		return
+	}
+	if content == nil {
+		http.Error(w, "Contenu non trouvé pour ce titleSlug", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(content)
+}
+
+// FetchAndStoreChallengeContent : Se comporte comme un GET sauf si la donnée recherchée n'existe pas, alors on l'ajoute dans la BDD.
+func FetchAndStoreChallengeContent(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	titleSlug := vars["titleSlug"]
+
+	content, err := findChallengeContentBySlug(titleSlug)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if content != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(content)
+		return
+	}
+
+	// Si le contenu n'existe pas encore, on le récupère via l'API LeetCode et on l'écrit dans Firestore
+	err = GlobalFirebaseService.writeChallengeContent(titleSlug)
+	if err != nil {
+		log.Printf("Erreur lors de l'écriture du challenge %s : %v", titleSlug, err)
+		http.Error(w, "Erreur lors de l'enregistrement du challenge", http.StatusInternalServerError)
+		return
+	}
+
+	// On récupère à nouveau le contenu maintenant qu'il est censé être écrit
+	content, err = findChallengeContentBySlug(titleSlug)
+	if err != nil || content == nil {
+		http.Error(w, "Erreur lors de la récupération après écriture", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(content)
+}
+
+/**
 * CLASSIC CHALLENGES
 **/
 

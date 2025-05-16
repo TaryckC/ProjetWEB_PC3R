@@ -6,10 +6,13 @@ import (
 	"log"
 	leetcodeapi "projetweb/backend/api/leetcode_api"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -19,16 +22,12 @@ const (
 	WeeklyChallengesDoc  = "weekly_challenges"
 	ClassicChallengesDoc = "classic_challenges"
 	FirestoreCollection  = "Challenges"
+	ChallengeContentDoc  = "Challenge_content"
 	FirebaseProjectID    = "pc3rprojet-ce4a7"
 	FirebaseKeyPath      = "keys/serviceAccountKey.json"
 )
 
 var GlobalFirebaseService *FirebaseService
-
-// TODO : Va falloir réorganiser la BDD :
-/*
-*  Challenges -> TYPES (3+?) -> challenges -> data
- */
 
 type FirebaseService struct {
 	App    *firebase.App
@@ -58,6 +57,26 @@ func InitFireBase() (*FirebaseService, error) {
 
 // TODO : Peut-être plus tard stocker la référence dans une variable ?
 // TODO : Afficher l'erreur et laisser le traitement aux autres ?
+
+/**/
+/* GENERIC FUNCTIONS FOR CHALLENGES
+/**/
+
+// findChallengeContentBySlug récupère le contenu d'un challenge à partir du titleSlug
+func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error) {
+	doc, err := GlobalFirebaseService.Client.Collection(ChallengeContentDoc).Doc(titleSlug).Get(context.Background())
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	var content map[string]interface{}
+	if err := doc.DataTo(&content); err != nil {
+		return nil, err
+	}
+	return content, nil
+}
 
 /**/
 /*  Daily Challenge gestion
@@ -130,11 +149,23 @@ func (fs *FirebaseService) UpdateDailyQuestionDescription() error {
 /**/
 
 // TODO : Utiliser write Challenge dans dailyChallenge aussi pour la factoriser
-// TODO : Il va falloir modifier la façon de stocker les données des dailychallenges dans la BDD (cf firebase pour voir le problème)
 func (fs *FirebaseService) writeChallenge(collection string, doc string, data map[string]interface{}) error {
 	_, err := fs.Client.Collection(collection).Doc(doc).Set(context.Background(), data)
 	if err != nil {
 		return fmt.Errorf("FIREBASE : Error writing challenge : %v", err)
+	}
+	return nil
+}
+
+func (fs *FirebaseService) writeChallengeContent(titleSlug string) error {
+	content, err := leetcodeapi.RequestQuestionsData(titleSlug)
+	if err != nil {
+		return fmt.Errorf("LEETCODEAPI : Error fetching challenge content : %v", err)
+	}
+	_, err = fs.Client.Collection(ChallengeContentDoc).Doc(titleSlug).Set(context.Background(), content)
+	if err != nil {
+		log.Println("FIREBASE : Error while writing challenge content in the database")
+		return err
 	}
 	return nil
 }
@@ -235,3 +266,54 @@ func (fs *FirebaseService) WriteChallengeComplementaryData() error {
 	}
 	return nil
 }
+
+
+type ForumPost struct {
+    Author    string    `json:"author"`
+    Content   string    `json:"content"`
+    CreatedAt time.Time `json:"created_at"`
+}
+func (fs *FirebaseService) PostForumMessage(challengeId string, post ForumPost) error {
+    _, _, err := fs.Client.
+        Collection("classic_challenges").
+        Doc(challengeId).
+        Collection("forum").
+        Add(context.Background(), post)
+
+    if err != nil {
+        log.Println("Error adding forum post:", err)
+    }
+
+    return err
+}
+
+func (fs *FirebaseService) GetForumMessage(challengeId string) ([]ForumPost, error) {
+    ctx := context.Background()
+    docs, err := fs.Client.
+        Collection("classic_challenges").
+        Doc(challengeId).
+        Collection("forum").
+        OrderBy("CreatedAt", firestore.Asc).
+        Documents(ctx).
+        GetAll()
+        
+    if err != nil {
+        log.Println("Error fetching forum posts:", err)
+        return nil, err
+    }
+
+    var posts []ForumPost
+    for _, doc := range docs {
+        var p ForumPost
+        if err := doc.DataTo(&p); err == nil {
+            posts = append(posts, p)
+        }
+    }
+
+    return posts, nil
+}
+
+
+
+
+

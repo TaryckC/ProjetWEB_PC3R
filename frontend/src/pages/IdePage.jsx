@@ -1,78 +1,134 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
 
-const templates = {
-  python: {
-    code: `def twoSum(nums, target):
-    return []`,
-    funcName: "twoSum",
-  },
-  javascript: {
-    code: `function twoSum(nums, target) {
-  return [];
-}`,
-    funcName: "twoSum",
-  },
-};
+function getMonacoLang(lang) {
+  if (lang === "python3" || lang === "python2") return "python";
+  return lang;
+}
 
-function extractExamplesFromHTML(html) {
-  const preBlocks = Array.from(html.matchAll(/<pre[^>]*>(.*?)<\/pre>/gs));
-  const examples = [];
+function extractFunctionName(code, lang) {
+  if (!code) return "unknown";
 
-  for (const [, block] of preBlocks) {
-    const lines = block.trim().split("\n");
-    let inputLine = "",
-      outputLine = "";
-
-    for (let line of lines) {
-      if (line.trim().startsWith("Input:")) {
-        inputLine = line.trim().replace("Input:", "").trim();
-      }
-      if (line.trim().startsWith("Output:")) {
-        outputLine = line.trim().replace("Output:", "").trim();
-      }
-    }
-
-    if (inputLine && outputLine) {
-      const inputObj = {};
-      const parts = inputLine.split(/,\s*/);
-      for (let part of parts) {
-        const [key, value] = part.split("=");
-        if (key && value) {
-          try {
-            inputObj[key.trim()] = JSON.parse(value.trim());
-          } catch {
-            inputObj[key.trim()] = value.trim();
-          }
-        }
-      }
-      examples.push({ input: inputObj, expected: outputLine });
-    }
+  if (lang.toLowerCase().startsWith("python")) {
+    const match = code.match(/def\s+([a-zA-Z_]\w*)\s*\(/);
+    return match?.[1] || "unknown";
   }
 
-  return examples;
+  if (
+    lang.toLowerCase() === "javascript" ||
+    lang.toLowerCase() === "typescript"
+  ) {
+    const match = code.match(/function\s+([a-zA-Z_]\w*)\s*\(/);
+    return match?.[1] || "unknown";
+  }
+
+  if (lang.toLowerCase() === "java") {
+    const match = code.match(/public\s+\w+\s+([a-zA-Z_]\w*)\s*\(/);
+    return match?.[1] || "unknown";
+  }
+
+  if (lang.toLowerCase() === "cpp" || lang.toLowerCase() === "c++") {
+    const match = code.match(/\w+\s+([a-zA-Z_]\w*)\s*\(/);
+    return match?.[1] || "unknown";
+  }
+
+  // Ajoute d'autres langages ici si nécessaire...
+
+  return "unknown";
 }
 
 export default function IdePage() {
   const { id } = useParams();
   const { state } = useLocation();
-  const challenge = state?.challenge;
-
+  const [challenge, setChallenge] = useState(null);
+  const templatesRef = useRef({});
   const [language, setLanguage] = useState("python");
-  const [code, setCode] = useState(templates["python"].code);
+  const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [examples, setExamples] = useState([]);
 
-  useEffect(() => {
-    setCode(templates[language].code);
-  }, [language]);
+  const sendChallengeContent = async (titleSlug) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/challengeContent/${titleSlug}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur côté serveur");
+      }
+
+      const result = await response.json();
+      const question = result.data.question;
+
+      templatesRef.current = Object.fromEntries(
+        question.codeSnippets.map((snip) => {
+          const funcName = extractFunctionName(snip.code, snip.lang);
+          return [
+            snip.lang.toLowerCase(),
+            {
+              code: snip.code,
+              language: snip.lang,
+              funcName: funcName, // dynamique
+            },
+          ];
+        })
+      );
+
+      console.log("Template : ", templatesRef);
+
+      setChallenge({
+        title: question.title,
+        titleSlug: question.titleSlug,
+        description: question.content,
+      });
+
+      console.log("Succès:", question);
+    } catch (error) {
+      console.error("Erreur réseau:", error);
+    }
+  };
 
   useEffect(() => {
-    const html = challenge.description || challenge.question?.description;
-    const autoExamples = extractExamplesFromHTML(html);
-    setExamples(autoExamples);
+    const titleSlug = state?.challenge?.titleSlug || id;
+    if (titleSlug) {
+      sendChallengeContent(titleSlug);
+    }
+  }, [state, id]);
+
+  useEffect(() => {
+    const template = templatesRef.current[language];
+    if (template && template.code) {
+      setCode(template.code);
+    }
+  }, [challenge, language]);
+
+  useEffect(() => {
+    if (!challenge || !challenge.description) return;
+
+    const worker = new Worker(
+      new URL("../services/extractWorker.js", import.meta.url),
+      {
+        type: "module",
+      }
+    );
+
+    worker.onmessage = function (e) {
+      const extracted = e.data;
+      console.log("Résultat extrait :", extracted);
+      setExamples(extracted);
+    };
+
+    worker.postMessage(challenge.description);
+
+    return () => worker.terminate(); // bonne pratique pour nettoyer
   }, [challenge]);
 
   const languageIdMap = {
@@ -83,23 +139,47 @@ export default function IdePage() {
   function buildTestCode(lang, funcName, inputObj) {
     const varNames = Object.keys(inputObj);
     const values = Object.values(inputObj);
+
     const declarations = varNames.map(
       (name, i) => `${name} = ${JSON.stringify(values[i])}`
     );
+
     const call = `${funcName}(${varNames.join(", ")})`;
 
-    if (lang === "python") {
-      return declarations.join("\n") + `\nprint(${call})`;
+    if (lang === "python" || lang === "python3") {
+      return (
+        declarations.join("\n") +
+        `\nprint(Solution().${funcName}(${varNames.join(", ")}))`
+      );
     } else if (lang === "javascript") {
       return declarations.join("\n") + `\nconsole.log(${call});`;
+    } else if (lang === "java") {
+      // Java nécessite une méthode main
+      const javaDeclarations = varNames.map(
+        (name, i) => `var ${name} = ${JSON.stringify(values[i])};`
+      );
+
+      const javaCall = `System.out.println(new Solution().${funcName}(${varNames.join(
+        ", "
+      )}));`;
+
+      return `
+public class Main {
+    public static void main(String[] args) {
+        ${javaDeclarations.join("\n        ")}
+        ${javaCall}
     }
+}
+`;
+    }
+
     return "// unsupported language";
   }
 
   async function runExample(example) {
     const injected = buildTestCode(
       language,
-      templates[language].funcName,
+      templatesRef.current[language].funcName,
       example.input
     );
     const fullCode = code + "\n" + injected;
@@ -128,7 +208,12 @@ export default function IdePage() {
 
   const runAllExamples = async () => {
     setOutput("Chargement...");
-    const results = await Promise.all(examples.map(runExample));
+    const results = [];
+    for (const example of examples) {
+      const result = await runExample(example);
+      results.push(result);
+      await new Promise((res) => setTimeout(res, 500));
+    }
     const report = results.map(
       (ex, i) =>
         `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${
@@ -170,7 +255,7 @@ export default function IdePage() {
             onChange={(e) => setLanguage(e.target.value)}
             className="border px-2 py-1 rounded"
           >
-            {Object.keys(templates).map((lang) => (
+            {Object.keys(templatesRef.current).map((lang) => (
               <option key={lang} value={lang}>
                 {lang}
               </option>
@@ -181,7 +266,7 @@ export default function IdePage() {
         <div className="flex-1 border rounded overflow-hidden mb-4">
           <MonacoEditor
             height="100%"
-            language={language}
+            language={getMonacoLang(language)}
             theme="vs-dark"
             value={code}
             onChange={(value) => setCode(value)}

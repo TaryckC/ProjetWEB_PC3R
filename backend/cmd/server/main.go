@@ -36,14 +36,20 @@ func setUpLeetCodeAPIRoute(r *mux.Router) {
 	r.HandleFunc("/classic-challenges", database.GetAllClassicChallenges).Methods("GET")
 	r.HandleFunc("/classic-challenges/{id}", database.GetClassicChallenge).Methods("GET")
 	r.HandleFunc("/daily-challenge", database.GetTodayChallenge).Methods("GET")
+	r.HandleFunc("/challengeContent/{titleSlug}", database.GetChallengeContent).Methods("GET")
+	r.HandleFunc("/challengeContent/{titleSlug}", database.FetchAndStoreChallengeContent).Methods("POST", "OPTIONS")
 }
 
 func setUpCompilerRoutes(r *mux.Router) {
-	r.HandleFunc("/compile", handlers.HandleCompiler).Methods("POST")
+	r.HandleFunc("/compile", handlers.HandleCompiler).Methods("POST", "OPTIONS")
 }
 
 func setUpNewsRoutes(r *mux.Router) {
 	r.HandleFunc("/news", handlers.HandleNews).Methods("GET")
+}
+func setUpForum(r *mux.Router) {
+	r.HandleFunc("/challengeContent/{titleSlug}/forum", handlers.GetForumMessages).Methods("GET")
+r.HandleFunc("/challengeContent/{titleSlug}", database.FetchAndStoreChallengeContent).Methods("POST", "OPTIONS")
 }
 
 func main() {
@@ -63,6 +69,7 @@ func main() {
 	setUpLeetCodeAPIRoute(r)
 	setUpCompilerRoutes(r)
 	setUpNewsRoutes(r)
+	setUpForum(r)
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
 	log.Fatal(http.ListenAndServe(":8080", r))
