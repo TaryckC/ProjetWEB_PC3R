@@ -13,34 +13,39 @@ import (
 )
 
 func PostForumMessage(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    problemID := vars["id"]
+	vars := mux.Vars(r)
+	problemID := vars["titleSlug"]
 
-    var post database.ForumPost
-    if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-        utils.WriteJSONError(w, http.StatusBadRequest, "Invalid request body")
-        return
-    }
+	log.Println("🔵 POST forum reçu pour titleSlug =", problemID)
 
-    post.CreatedAt = time.Now()
+	var post database.ForumPost
+	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+		log.Println("🔴 Erreur décodage JSON :", err)
+		utils.WriteJSONError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
 
-    err := database.GlobalFirebaseService.PostForumMessage(problemID,post)
+	log.Printf("🟡 Message reçu : author=%s | content=%s\n", post.Author, post.Content)
 
-    if err != nil {
-        utils.WriteJSONError(w, http.StatusInternalServerError,  "Error saving post")
-        log.Println("Error adding forum post:", err)
-        return
-    }
+	post.CreatedAt = time.Now()
 
-    w.WriteHeader(http.StatusCreated)
-    fmt.Fprintln(w, "Post added successfully")
+	err := database.GlobalFirebaseService.PostForumMessage(problemID, post)
+	if err != nil {
+		utils.WriteJSONError(w, http.StatusInternalServerError, "Error saving post")
+		log.Println("🔴 Erreur Firebase :", err)
+		return
+	}
+
+	log.Println("🟢 Message enregistré avec succès")
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintln(w, "Post added successfully")
 }
 
 
 
 func GetForumMessages(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	problemID := vars["id"]
+	problemID := vars["titleSlug"]
 
 	posts, err := database.GlobalFirebaseService.GetForumMessage(problemID)
 	if err != nil {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
-
+import { auth } from "../firebaseAuth";
 function getMonacoLang(lang) {
   if (lang === "python3" || lang === "python2") return "python";
   return lang;
@@ -48,6 +48,8 @@ export default function IdePage() {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [examples, setExamples] = useState([]);
+  const [forumMessages, setForumMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
 
   const sendChallengeContent = async (titleSlug) => {
     try {
@@ -109,6 +111,27 @@ export default function IdePage() {
       setCode(template.code);
     }
   }, [challenge, language]);
+
+  useEffect(() => {
+    if (!challenge?.titleSlug) return;
+    fetch(
+      `http://localhost:8080/forum/challengeContent/${challenge?.titleSlug}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Forum API response :", data);
+        // 👇 ici on vérifie si data.messages est un tableau
+        if (Array.isArray(data)) {
+          setForumMessages(data); // cas 1 : le back renvoie déjà un tableau
+        } else if (Array.isArray(data.messages)) {
+          setForumMessages(data.messages); // cas 2 : le back renvoie { messages: [...] }
+        } else {
+          console.error("Format de réponse forum invalide:", data);
+          setForumMessages([]); // vide par sécurité
+        }
+      })
+      .catch((err) => console.error("Erreur forum:", err));
+  }, [challenge]);
 
   useEffect(() => {
     if (!challenge || !challenge.description) return;
@@ -207,7 +230,7 @@ public class Main {
   }
 
   const runAllExamples = async () => {
-    setOutput("Chargement...");
+    setOutput("Execution en cours...");
     const results = [];
     for (const example of examples) {
       const result = await runExample(example);
@@ -224,6 +247,28 @@ public class Main {
     );
     setOutput(report.join("\n\n"));
   };
+
+  function handlePostMessage() {
+    console.log(
+      "DEBUG — titleSlug utilisé pour POST forum :",
+      challenge.titleSlug
+    );
+
+    fetch(
+      `http://localhost:8080/forum/challengeContent/${challenge.titleSlug}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          author: auth.currentUser?.displayName || "anonyme",
+          content: newMessage,
+        }),
+      }
+    )
+      .then((res) => res.text())
+      .then((txt) => console.log("Réponse brute du POST :", txt))
+      .catch((err) => console.error("❌ Erreur POST forum :", err));
+  }
 
   if (!challenge) return <p className="p-6 text-red-500">Challenge manquant</p>;
 
@@ -244,6 +289,43 @@ public class Main {
         >
           Tester les cas d'exemples
         </button>
+
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold mb-2">💬 Forum du challenge</h2>
+
+          <div className="bg-gray-100 p-4 rounded max-h-60 overflow-y-auto mb-4">
+            {forumMessages.length === 0 ? (
+              <p className="text-gray-600 italic">
+                Aucun message pour l’instant.
+              </p>
+            ) : (
+              <ul>
+                {forumMessages.map((msg, i) => (
+                  <li key={i} className="mb-2">
+                    <span className="font-bold">{msg.author}</span>:{" "}
+                    {msg.content}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="flex-1 border rounded px-2 py-1"
+              placeholder="Écris un message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+            />
+            <button
+              onClick={handlePostMessage}
+              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+            >
+              Envoyer
+            </button>
+          </div>
+        </section>
       </aside>
 
       {/* Éditeur + Résultat */}

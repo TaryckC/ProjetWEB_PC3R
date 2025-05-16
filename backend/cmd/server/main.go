@@ -48,8 +48,8 @@ func setUpNewsRoutes(r *mux.Router) {
 	r.HandleFunc("/news", handlers.HandleNews).Methods("GET")
 }
 func setUpForum(r *mux.Router) {
-	r.HandleFunc("/challengeContent/{titleSlug}/forum", handlers.GetForumMessages).Methods("GET")
-r.HandleFunc("/challengeContent/{titleSlug}", database.FetchAndStoreChallengeContent).Methods("POST", "OPTIONS")
+	r.HandleFunc("/forum/challengeContent/{titleSlug}", handlers.GetForumMessages).Methods("GET")
+r.HandleFunc("/forum/challengeContent/{titleSlug}", handlers.PostForumMessage).Methods("POST", "OPTIONS")
 }
 
 func main() {

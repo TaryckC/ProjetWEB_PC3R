@@ -1,3 +1,29 @@
+function parseInputString(inputStr) {
+  const obj = {};
+
+  // Match "key = value" même si value contient des [], {}, "", () ou des virgules
+  const regex =
+    /([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*("[^"]*"|\[[^\]]*\]|\{[^\}]*\}|\([^\)]*\)|[^,]+)/g;
+
+  let match;
+  while ((match = regex.exec(inputStr)) !== null) {
+    const key = match[1].trim();
+    let value = match[2].trim();
+
+    try {
+      // Tuples → listes
+      if (value.startsWith("(") && value.endsWith(")")) {
+        value = "[" + value.slice(1, -1) + "]";
+      }
+      obj[key] = JSON.parse(value);
+    } catch {
+      obj[key] = value;
+    }
+  }
+
+  return obj;
+}
+
 self.onmessage = function (e) {
   const html = e.data;
 
@@ -5,13 +31,11 @@ self.onmessage = function (e) {
   const result = [];
 
   for (const [, content] of preBlocks) {
-    const text = content.replace(/<[^>]+>/g, ""); // supprime les balises HTML
-
-    const match = text.match(/Input:\s*([^\n]+)[\s\S]*?Output:\s*([^\n]+)/);
+    const text = content.replace(/<[^>]+>/g, ""); // nettoie HTML
+    const match = text.match(/Input:\s*([\s\S]*?)\nOutput:\s*([^\n]+)/);
     if (match) {
       const rawInput = match[1].trim();
       const parsedInput = parseInputString(rawInput);
-
       result.push({
         input: parsedInput,
         expected: match[2].trim(),
@@ -21,30 +45,3 @@ self.onmessage = function (e) {
 
   self.postMessage(result);
 };
-
-function parseInputString(inputStr) {
-  const obj = {};
-  const parts = inputStr.split(",").map((part) => part.trim());
-
-  for (const part of parts) {
-    const [key, rawValue] = part.split("=").map((s) => s.trim());
-    let parsed;
-
-    try {
-      // Essaye de parser comme JSON
-      if (rawValue.startsWith("(") && rawValue.endsWith(")")) {
-        // Tuples → listes
-        parsed = JSON.parse(rawValue.replace(/\(/g, "[").replace(/\)/g, "]"));
-      } else {
-        parsed = JSON.parse(rawValue);
-      }
-    } catch {
-      // Si échec, garde en chaîne brute
-      parsed = rawValue;
-    }
-
-    obj[key] = parsed;
-  }
-
-  return obj;
-}

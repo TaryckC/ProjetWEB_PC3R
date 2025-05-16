@@ -274,8 +274,12 @@ type ForumPost struct {
     CreatedAt time.Time `json:"created_at"`
 }
 func (fs *FirebaseService) PostForumMessage(challengeId string, post ForumPost) error {
-    _, _, err := fs.Client.
-        Collection("classic_challenges").
+        if challengeId == "" {
+        log.Println("Erreur : challengeId vide dans PostForumMessage")
+        return nil
+    }
+	_, _, err := fs.Client.
+        Collection("Challenge_content").
         Doc(challengeId).
         Collection("forum").
         Add(context.Background(), post)
@@ -288,9 +292,13 @@ func (fs *FirebaseService) PostForumMessage(challengeId string, post ForumPost) 
 }
 
 func (fs *FirebaseService) GetForumMessage(challengeId string) ([]ForumPost, error) {
-    ctx := context.Background()
+    if challengeId == "" {
+        log.Println("Erreur : challengeId vide dans PostForumMessage")
+        return nil,nil
+    }
+	ctx := context.Background()
     docs, err := fs.Client.
-        Collection("classic_challenges").
+        Collection("Challenge_content").
         Doc(challengeId).
         Collection("forum").
         OrderBy("CreatedAt", firestore.Asc).
