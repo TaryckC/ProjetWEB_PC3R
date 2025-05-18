@@ -31,7 +31,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename="/ProjetWEB_PC3R">
       <ToastContainer position="bottom-center" autoClose={3000} />
       <Routes>
         <Route path="/" element={<Login />} />

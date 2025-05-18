@@ -76,6 +76,7 @@ func FetchAndStoreChallengeContent(w http.ResponseWriter, r *http.Request) {
 func GetAllClassicChallenges(w http.ResponseWriter, r *http.Request) {
 	docs, err := GlobalFirebaseService.Client.Collection(ClassicChallengesDoc).Documents(context.Background()).GetAll()
 	if err != nil {
+		log.Printf("🔥 Erreur Firebase GetAll(): %v", err)
 		http.Error(w, "Erreur lors de la récupération des challenges", http.StatusInternalServerError)
 		return
 	}
