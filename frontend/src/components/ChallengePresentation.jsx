@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const CHALLENGE_TYPES = {
@@ -133,6 +133,7 @@ export default function ChallengePresentation() {
   const [classicChallenges, setClassicChallenges] = useState([]);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const navigate = useNavigate();
+  const detailRef = useRef(null);
 
   useEffect(() => { }, [selectedChallenge]);
 
@@ -175,10 +176,16 @@ export default function ChallengePresentation() {
       .catch(console.error);
   }, []);
 
+  useEffect(() => {
+    if (detailRef.current) {
+      detailRef.current.scrollTop = 0;
+    }
+  }, [selectedChallenge]);
+
   return (
     <div className="flex flex-row w-full h-screen p-6 gap-6 bg-gray-50 overflow-hidden">
       {/* Colonne gauche : Liste des challenges */}
-      <div className="w-1/3 overflow-y-auto h-full pr-4">
+      <div className="flex-none w-[300px] overflow-y-auto h-full pr-4">
         <h2 className="text-xl font-bold text-gray-700 mb-4">
           🗓 Daily Challenge
         </h2>
@@ -203,7 +210,10 @@ export default function ChallengePresentation() {
       </div>
 
       {/* Colonne droite : Détail du challenge */}
-      <div className="flex-1 overflow-y-auto h-full bg-white rounded-xl shadow p-6 border border-gray-200">
+      <div
+        ref={detailRef}
+        className="flex-1 flex flex-col overflow-y-auto bg-white rounded-xl shadow p-6 border border-gray-200"
+      >
         {!selectedChallenge ? (
           <p className="text-gray-500 italic">
             Sélectionne un challenge pour voir les détails.

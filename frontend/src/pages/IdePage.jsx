@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import Navbar from "../components/Navbar";
 const BACKEND_URL = "https://projetpc3r.alwaysdata.net";
 import { useParams, useLocation } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
@@ -256,101 +257,128 @@ public class Main {
       .catch((err) => console.error("❌ Erreur POST forum :", err));
   }
 
-  if (!challenge) return <p className="p-6 text-red-500">Challenge manquant</p>;
+  if (!challenge)
+    return (
+      <div className="h-screen w-full flex justify-center items-center">
+        <svg
+          className="animate-spin h-16 w-16 text-gray-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          />
+        </svg>
+      </div>
+    );
 
   return (
-    <div className="flex h-screen w-full">
-      {/* Description */}
-      <aside className="w-1/2 p-6 border-r overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">{challenge.title}</h1>
-        <div
-          className="prose max-w-none text-gray-800 overflow-x-auto break-words"
-          dangerouslySetInnerHTML={{
-            __html: challenge.description || challenge.question?.description,
-          }}
-        />
-        <button
-          onClick={runAllExamples}
-          className="mt-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Tester les cas d'exemples
-        </button>
-
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold mb-2">💬 Forum du challenge</h2>
-
-          <div className="bg-gray-100 p-4 rounded max-h-60 overflow-y-auto mb-4">
-            {forumMessages.length === 0 ? (
-              <p className="text-gray-600 italic">
-                Aucun message pour l’instant.
-              </p>
-            ) : (
-              <ul>
-                {forumMessages.map((msg, i) => (
-                  <li key={i} className="mb-2">
-                    <span className="font-bold">{msg.author}</span>:{" "}
-                    {msg.content}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              className="flex-1 border rounded px-2 py-1"
-              placeholder="Écris un message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-            />
-            <button
-              onClick={handlePostMessage}
-              className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-            >
-              Envoyer
-            </button>
-          </div>
-        </section>
-      </aside>
-
-      {/* Éditeur + Résultat */}
-      <main className="flex-1 p-6 flex flex-col bg-gray-50">
-        <div className="flex items-center gap-4 mb-4">
-          <label>Langage :</label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="border px-2 py-1 rounded"
-          >
-            {Object.keys(templatesRef.current).map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex-1 border rounded overflow-hidden mb-4">
-          <MonacoEditor
-            height="100%"
-            language={getMonacoLang(language)}
-            theme="vs-dark"
-            value={code}
-            onChange={(value) => setCode(value)}
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              automaticLayout: true,
+    <>
+      <Navbar />
+      <div className="flex h-[calc(100vh-1rem)] w-full mt-4">
+        {/* Description */}
+        <aside className="w-1/2 p-6 border-r overflow-y-auto">
+          <h1 className="text-2xl font-bold mb-4">{challenge.title}</h1>
+          <div
+            className="prose max-w-none text-gray-800 overflow-x-auto break-words"
+            dangerouslySetInnerHTML={{
+              __html: challenge.description || challenge.question?.description,
             }}
           />
-        </div>
+          <button
+            onClick={runAllExamples}
+            className="mt-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Tester les cas d'exemples
+          </button>
 
-        <div className="bg-black text-green-400 p-4 rounded text-sm font-mono overflow-x-auto">
-          <p className="mb-1 font-semibold">Résultat :</p>
-          <pre>{output}</pre>
-        </div>
-      </main>
-    </div>
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold mb-2">💬 Forum du challenge</h2>
+
+            <div className="bg-gray-100 p-4 rounded max-h-60 overflow-y-auto mb-4">
+              {forumMessages.length === 0 ? (
+                <p className="text-gray-600 italic">
+                  Aucun message pour l’instant.
+                </p>
+              ) : (
+                <ul>
+                  {forumMessages.map((msg, i) => (
+                    <li key={i} className="mb-2">
+                      <span className="font-bold">{msg.author}</span>:{" "}
+                      {msg.content}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="flex-1 border rounded px-2 py-1"
+                placeholder="Écris un message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+              />
+              <button
+                onClick={handlePostMessage}
+                className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+              >
+                Envoyer
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        {/* Éditeur + Résultat */}
+        <main className="flex-1 p-6 flex flex-col bg-gray-50">
+          <div className="flex items-center gap-4 mb-4">
+            <label>Langage :</label>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="border px-2 py-1 rounded"
+            >
+              {Object.keys(templatesRef.current).map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex-1 border rounded overflow-hidden mb-4">
+            <MonacoEditor
+              height="100%"
+              language={getMonacoLang(language)}
+              theme="vs-dark"
+              value={code}
+              onChange={(value) => setCode(value)}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                automaticLayout: true,
+              }}
+            />
+          </div>
+
+          <div className="bg-black text-green-400 p-4 rounded text-sm font-mono overflow-x-auto">
+            <p className="mb-1 font-semibold">Résultat :</p>
+            <pre>{output}</pre>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
