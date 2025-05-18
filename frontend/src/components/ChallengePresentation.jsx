@@ -215,7 +215,7 @@ export default function ChallengePresentation() {
         className="flex-1 flex flex-col overflow-y-auto bg-white rounded-xl shadow p-6 border border-gray-200"
       >
         {!selectedChallenge ? (
-          <p className="text-gray-500 italic">
+          <p className="text-lg font-bold text-center text-gray-500 italic w-full">
             Sélectionne un challenge pour voir les détails.
           </p>
         ) : selectedChallenge._kind === CHALLENGE_KIND.DAILY ? (
