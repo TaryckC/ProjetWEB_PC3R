@@ -18,4 +18,7 @@ go.sum
 .DS_Store
 
 # Variables d'environnement
-.env
+.envbackend/keys/serviceAccountKey.json
+backend/keys/serviceAccountKey.json
+backend/keys/serviceAccountKey.json
+backend/keys/serviceAccountKey.json
