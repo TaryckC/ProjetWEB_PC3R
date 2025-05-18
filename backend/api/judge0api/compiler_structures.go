@@ -17,13 +17,6 @@ type Example struct {
 	Expected string `json:"expected"`
 }
 
-type EvaluationRequest struct {
-	SourceCode string    `json:"source_code"`
-	LanguageID int       `json:"language_id"`
-	Stdin      string    `json:"stdin"`
-	Examples   []Example `json:"examples"`
-}
-
 type ExecutionResult struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
@@ -32,4 +25,15 @@ type ExecutionResult struct {
 	} `json:"status"`
 	Time   string `json:"time"`
 	Memory int    `json:"memory"`
+}
+
+type BatchSubmission struct {
+	Submissions []Submission `json:"submissions"`
+}
+
+type BatchResponseItem struct {
+	Token string `json:"token"`
+}
+type BatchResultResponse struct {
+	Submissions []ExecutionResult `json:"submissions"`
 }

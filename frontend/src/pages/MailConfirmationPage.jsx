@@ -11,7 +11,6 @@ export default function MailConf() {
       if (auth.currentUser) {
         await auth.currentUser.reload();
         if (auth.currentUser.emailVerified) {
-          console.log("Passage à la page suivante");
           navigate("/HomePage");
         }
       }

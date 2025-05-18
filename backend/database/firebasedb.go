@@ -36,20 +36,16 @@ type FirebaseService struct {
 
 func InitFireBase() (*FirebaseService, error) {
 	opt := option.WithCredentialsFile(FirebaseKeyPath)
-	log.Printf("🔍 Chargement de la clé Firebase depuis : %s", FirebaseKeyPath)
 	config := &firebase.Config{ProjectID: FirebaseProjectID}
 	app, err := firebase.NewApp(context.Background(), config, opt)
 	if err != nil {
 		return nil, fmt.Errorf("firebase.NewApp failed: %w", err)
 	}
-	log.Println("✅ Clé Firebase acceptée, application initialisée.")
-	log.Println("Connexion à Firebase établie")
 
 	client, err := app.Firestore(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("firebase.Firestore failed: %w", err)
 	}
-	log.Println("Client Firestore créé.")
 
 	res := &FirebaseService{App: app, Client: client}
 	GlobalFirebaseService = res
@@ -66,7 +62,6 @@ func InitFireBase() (*FirebaseService, error) {
 
 // findChallengeContentBySlug récupère le contenu d'un challenge à partir du titleSlug
 func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error) {
-	log.Printf("🔍 Recherche du challenge avec titleSlug = %s", titleSlug)
 	doc, err := GlobalFirebaseService.Client.Collection(ChallengeContentDoc).Doc(titleSlug).Get(context.Background())
 	if err != nil {
 		log.Printf("❌ Erreur dans findChallengeContentBySlug (Firestore): %v", err)
@@ -80,7 +75,6 @@ func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error
 		log.Printf("❌ Erreur dans findChallengeContentBySlug (Firestore): %v", err)
 		return nil, err
 	}
-	log.Printf("✅ Contenu du challenge trouvé : %+v", content)
 	return content, nil
 }
 
@@ -89,13 +83,10 @@ func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error
 /**/
 
 func (fs *FirebaseService) WriteDailyChallenge(year int, month int) error {
-	log.Println("🟡 Début de WriteDailyChallenge")
 	challenge, err := leetcodeapi.RequestDailyChallenge(year, month)
 	if err != nil {
 		return fmt.Errorf("LEETCODEAPI : Error fetching daily challenge : %v", err)
 	}
-
-	log.Println("📥 Daily challenge récupéré depuis l'API")
 
 	challengeData := challenge["data"].(map[string]interface{})
 	activeChallenge := challengeData["activeDailyCodingChallengeQuestion"].(map[string]interface{})
@@ -105,11 +96,7 @@ func (fs *FirebaseService) WriteDailyChallenge(year int, month int) error {
 		return fmt.Errorf("FIREBASE : Error writing daily challenge : %w", err)
 	}
 
-	log.Println("📝 Daily challenge écrit dans Firestore")
-
 	fs.WriteDailyChallengeComplementaryData()
-
-	log.Println("🧩 Données complémentaires du daily challenge ajoutées")
 
 	return nil
 }
@@ -133,6 +120,7 @@ func (fs *FirebaseService) WriteDailyChallengeComplementaryData() error {
 	if err != nil {
 		return fmt.Errorf("FIRESTORE : failed to add daily challenge description to challenge : %v", err)
 	}
+
 	return nil
 }
 
@@ -159,7 +147,7 @@ func (fs *FirebaseService) UpdateDailyQuestionDescription() error {
 		return fmt.Errorf("FIRESTORE : Failed to update question description: %v", err)
 	}
 
-	log.Println("✅ SUCCÈS : description du challenge écrite dans Firestore")
+	fs.writeChallengeContent(titleSlug)
 
 	return nil
 }

@@ -20,7 +20,6 @@ import (
 func GetChallengeContent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	titleSlug := vars["titleSlug"]
-	log.Printf("📥 Endpoint /challengeContent appelé avec slug = %s", titleSlug)
 	content, err := findChallengeContentBySlug(titleSlug)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des contenus", http.StatusInternalServerError)
@@ -98,8 +97,6 @@ func GetAllClassicChallenges(w http.ResponseWriter, r *http.Request) {
 func GetClassicChallenge(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-
-	log.Printf("DEBUG: Tentative de récupération du challenge avec ID = %s", id)
 
 	challenge, _, err := GlobalFirebaseService.GetChallengeFromDataBase(ClassicChallengesDoc, id)
 	if err != nil {

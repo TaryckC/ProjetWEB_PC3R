@@ -12,6 +12,11 @@ const CHALLENGE_TYPES = {
   },
 };
 
+const CHALLENGE_KIND = {
+  DAILY: 'daily',
+  CLASSIC: 'classic',
+};
+
 async function fetchChallenges(type) {
   const endpoint =
     type === CHALLENGE_TYPES.DAILY.key
@@ -30,45 +35,96 @@ async function fetchChallenges(type) {
 }
 
 function ChallengeCard({ challenge, onClick }) {
-  let data;
+  const isDaily = challenge._kind === CHALLENGE_KIND.DAILY;
+  const title =
+    challenge.Question?.Title ||
+    challenge.question?.title ||
+    challenge.title;
 
-  if (challenge.Question) {
-    // Daily challenge
-    data = {
-      ...challenge.Question,
-      title: challenge.Question.Title,
-      difficulty: challenge.Question.Difficulty,
-      acRate: challenge.Question.ACRate,
-    };
-  } else if (challenge.question) {
-    // Classic challenge
-    data = {
-      ...challenge.question,
-      title: challenge.question.title,
-      difficulty: challenge.question.difficulty,
-      acRate: challenge.question.acRate,
-    };
-  } else {
-    data = challenge;
-  }
+  const difficulty = isDaily
+    ? challenge.Question?.Difficulty
+    : challenge.question?.difficulty || challenge.difficulty || "N/A";
+
+  const acRate = isDaily
+    ? challenge.Question?.ACRate
+    : challenge.question?.acRate ?? challenge.acRate;
 
   return (
     <div
-      onClick={() => onClick(data)}
+      onClick={() => onClick(challenge)}
       className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer mb-4"
     >
-      <h3 className="text-lg font-semibold text-gray-800">{data.title}</h3>
-      {!challenge.question && (
-        <>
-          <p className="text-sm text-gray-500">
-            Difficulté : {data.difficulty || "N/A"}
-          </p>
-          <p className="text-sm text-gray-500">
-            Taux de réussite : {typeof data.acRate === "number" ? data.acRate.toFixed(2) : "N/A"}%
-          </p>
-        </>
+      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      {isDaily && difficulty && (
+        <p className="text-sm text-gray-500">
+          Difficulté : {difficulty}
+        </p>
+      )}
+      {isDaily && typeof acRate === "number" && (
+        <p className="text-sm text-gray-500">
+          Taux de réussite : {acRate.toFixed(2)}%
+        </p>
       )}
     </div>
+  );
+}
+
+function DailyChallengeDetail({ challenge, navigate }) {
+  return (
+    <>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        {challenge.Question.Title}
+      </h2>
+      <p className="text-sm text-gray-600 mb-1">
+        Difficulté : {challenge.Question.Difficulty}
+      </p>
+      <p className="text-sm text-gray-600 mb-4">
+        Taux de réussite : {challenge.Question.ACRate.toFixed(2)}%
+      </p>
+      <div
+        className="text-gray-700 prose max-w-none"
+        dangerouslySetInnerHTML={{
+          __html: challenge.description || challenge.Question?.Description || "<em>Aucune description disponible.</em>",
+        }}
+      />
+      <button
+        onClick={() =>
+          navigate(`/ide/${challenge.Question.TitleSlug}`, {
+            state: { challenge },
+          })
+        }
+        className="mt-4 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+      >
+        Commencer le Daily
+      </button>
+    </>
+  );
+}
+
+function ClassicChallengeDetail({ challenge, navigate }) {
+  return (
+    <>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        {challenge.question?.title || challenge.title}
+      </h2>
+      <div className="mb-4" />
+      <div
+        className="text-gray-700 prose max-w-none"
+        dangerouslySetInnerHTML={{
+          __html: challenge.question.description || "<em>Aucune description disponible.</em>",
+        }}
+      />
+      <button
+        onClick={() =>
+          navigate(`/ide/${challenge.question?.titleSlug || challenge.titleSlug}`, {
+            state: { challenge },
+          })
+        }
+        className="mt-4 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition"
+      >
+        Commencer le Classic
+      </button>
+    </>
   );
 }
 
@@ -78,37 +134,38 @@ export default function ChallengePresentation() {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const navigate = useNavigate();
 
-  // Chercher dynamiquement la description du daily challenge sélectionné
+  useEffect(() => { }, [selectedChallenge]);
+
+  // Daily description (pas de fetch, on utilise Question.Description)
   useEffect(() => {
-    if (
-      selectedChallenge &&
-      !selectedChallenge.description &&
-      !selectedChallenge.question // ne pas fetch pour les classic
-    ) {
+    if (selectedChallenge?._kind === CHALLENGE_KIND.DAILY && !selectedChallenge.description) {
+      setSelectedChallenge(prev => ({
+        ...prev,
+        description: prev.Question?.Description || "<em>Aucune description disponible.</em>",
+      }));
+    }
+  }, [selectedChallenge?._kind]);
+
+  // Classic description (fetch vers ton API)
+  useEffect(() => {
+    if (selectedChallenge?._kind === CHALLENGE_KIND.CLASSIC && !selectedChallenge.description) {
       const slug = selectedChallenge.titleSlug || selectedChallenge.TitleSlug;
       if (!slug) return;
-
-      console.log("📛 Slug utilisé :", selectedChallenge.titleSlug || selectedChallenge.TitleSlug);
-
       fetch(`https://projetpc3r.alwaysdata.net/challengeContent/${slug}`)
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("🧪 Description reçue :", data);
-          setSelectedChallenge((prev) => ({
+        .then(res => res.json())
+        .then(data => {
+          setSelectedChallenge(prev => ({
             ...prev,
             description: data.description || "<em>Aucune description disponible.</em>",
           }));
         })
-        .catch((err) => {
-          console.error("Erreur chargement description:", err);
-        });
+        .catch(err => console.error("Erreur chargement description classique :", err));
     }
   }, [selectedChallenge]);
 
   useEffect(() => {
     fetchChallenges(CHALLENGE_TYPES.DAILY.key)
       .then(data => {
-        console.log("📅 Daily Challenges reçus :", data);
         setDailyChallenges(data);
       })
       .catch(console.error);
@@ -128,7 +185,7 @@ export default function ChallengePresentation() {
         {dailyChallenges.map((c, index) => (
           <ChallengeCard
             key={`daily-${c.id || c.question?.FrontendID || index}`}
-            challenge={c}
+            challenge={{ ...c, _kind: CHALLENGE_KIND.DAILY }}
             onClick={setSelectedChallenge}
           />
         ))}
@@ -139,7 +196,7 @@ export default function ChallengePresentation() {
         {classicChallenges.map((c, index) => (
           <ChallengeCard
             key={`classic-${c.id || c.question?.FrontendID || index}`}
-            challenge={c}
+            challenge={{ ...c, _kind: CHALLENGE_KIND.CLASSIC }}
             onClick={setSelectedChallenge}
           />
         ))}
@@ -147,49 +204,14 @@ export default function ChallengePresentation() {
 
       {/* Colonne droite : Détail du challenge */}
       <div className="flex-1 overflow-y-auto h-full bg-white rounded-xl shadow p-6 border border-gray-200">
-        {selectedChallenge ? (
-          <>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              {selectedChallenge.title}
-            </h2>
-            <p className="text-sm text-gray-600 mb-1">
-              Difficulté : {selectedChallenge.difficulty || "N/A"}
-            </p>
-            <p className="text-sm text-gray-600 mb-4">
-              Taux de réussite : {selectedChallenge.acRate?.toFixed(2) || "N/A"}
-              %
-            </p>
-            <div
-              className="text-gray-700 prose max-w-none"
-              dangerouslySetInnerHTML={{
-                __html:
-                  selectedChallenge.description ||
-                  selectedChallenge.question?.description ||
-                  selectedChallenge.Description ||
-                  "<em>Aucune description disponible.</em>",
-              }}
-            />
-            <button
-              onClick={() =>
-                navigate(
-                  `/ide/${selectedChallenge.titleSlug ||
-                  selectedChallenge.question?.titleSlug ||
-                  selectedChallenge.title
-                  }`,
-                  {
-                    state: { challenge: selectedChallenge },
-                  }
-                )
-              }
-              className="mt-4 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
-            >
-              Commencer
-            </button>
-          </>
-        ) : (
+        {!selectedChallenge ? (
           <p className="text-gray-500 italic">
             Sélectionne un challenge pour voir les détails.
           </p>
+        ) : selectedChallenge._kind === CHALLENGE_KIND.DAILY ? (
+          <DailyChallengeDetail challenge={selectedChallenge} navigate={navigate} />
+        ) : (
+          <ClassicChallengeDetail challenge={selectedChallenge} navigate={navigate} />
         )}
       </div>
     </div>

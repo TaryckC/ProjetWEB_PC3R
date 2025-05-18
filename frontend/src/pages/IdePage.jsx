@@ -253,7 +253,6 @@ public class Main {
       }
     )
       .then((res) => res.text())
-      .then((txt) => console.log("Réponse brute du POST :", txt))
       .catch((err) => console.error("❌ Erreur POST forum :", err));
   }
 
