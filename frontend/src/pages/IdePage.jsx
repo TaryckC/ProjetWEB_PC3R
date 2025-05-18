@@ -54,7 +54,7 @@ export default function IdePage() {
   const sendChallengeContent = async (titleSlug) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/challengeContent/${titleSlug}`,
+        `https://projetpc3r.alwaysdata.net/challengeContent/${titleSlug}`,
         {
           method: "POST",
           headers: {
@@ -115,7 +115,7 @@ export default function IdePage() {
   useEffect(() => {
     if (!challenge?.titleSlug) return;
     fetch(
-      `http://localhost:8080/forum/challengeContent/${challenge?.titleSlug}`
+      `https://projetpc3r.alwaysdata.net/forum/challengeContent/${challenge?.titleSlug}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -209,7 +209,7 @@ public class Main {
 
     setLoading(true);
     try {
-      const response = await fetch("/compile", {
+      const response = await fetch("https://projetpc3r.alwaysdata.net/compile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -239,10 +239,8 @@ public class Main {
     }
     const report = results.map(
       (ex, i) =>
-        `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${
-          ex.expected
-        }\nActual: ${ex.actual}\nRésultat: ${
-          ex.pass ? "✅ Réussi" : "❌ Échoué"
+        `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${ex.expected
+        }\nActual: ${ex.actual}\nRésultat: ${ex.pass ? "✅ Réussi" : "❌ Échoué"
         }\n`
     );
     setOutput(report.join("\n\n"));
@@ -255,7 +253,7 @@ public class Main {
     );
 
     fetch(
-      `http://localhost:8080/forum/challengeContent/${challenge.titleSlug}`,
+      `https://projetpc3r.alwaysdata.net/forum/challengeContent/${challenge.titleSlug}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

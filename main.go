@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"projetweb/backend/backend/database"
 	"projetweb/backend/backend/handlers"
 
@@ -60,11 +59,7 @@ func main() {
 	setUpForum(r)
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, r))
+	log.Fatal(http.ListenAndServe("[::]:8100", r))
 }
 
 func middlewareCors(next http.Handler) http.Handler {

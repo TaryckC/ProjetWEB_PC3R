@@ -15,8 +15,8 @@ const CHALLENGE_TYPES = {
 async function fetchChallenges(type) {
   const endpoint =
     type === CHALLENGE_TYPES.DAILY.key
-      ? "http://localhost:8080/daily-challenge"
-      : "http://localhost:8080/classic-challenges";
+      ? "https://projetpc3r.alwaysdata.net/daily-challenge"
+      : "https://projetpc3r.alwaysdata.net/classic-challenges";
 
   const response = await fetch(endpoint);
   if (!response.ok)
@@ -117,10 +117,9 @@ export default function ChallengePresentation() {
             <button
               onClick={() =>
                 navigate(
-                  `/ide/${
-                    selectedChallenge.titleSlug ||
-                    selectedChallenge.question?.titleSlug ||
-                    selectedChallenge.title
+                  `/ide/${selectedChallenge.titleSlug ||
+                  selectedChallenge.question?.titleSlug ||
+                  selectedChallenge.title
                   }`,
                   {
                     state: { challenge: selectedChallenge },
