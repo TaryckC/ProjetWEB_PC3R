@@ -183,7 +183,7 @@ export default function ChallengePresentation() {
   }, [selectedChallenge]);
 
   return (
-    <div className="flex flex-row w-full h-screen p-6 gap-6 bg-gray-50 overflow-hidden">
+    <div className="flex flex-row w-full h-screen p-6 gap-6 bg-gray-100 overflow-hidden">
       {/* Colonne gauche : Liste des challenges */}
       <div className="flex-none w-[300px] overflow-y-auto h-full pr-4">
         <h2 className="text-xl font-bold text-gray-700 mb-4">
@@ -215,7 +215,7 @@ export default function ChallengePresentation() {
         className="flex-1 flex flex-col overflow-y-auto bg-white rounded-xl shadow p-6 border border-gray-200"
       >
         {!selectedChallenge ? (
-          <p className="text-lg font-bold text-center text-gray-500 italic w-full">
+          <p className="text-lg font-bold text-center text-gray-700 italic w-full">
             Sélectionne un challenge pour voir les détails.
           </p>
         ) : selectedChallenge._kind === CHALLENGE_KIND.DAILY ? (

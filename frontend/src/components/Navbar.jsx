@@ -18,7 +18,7 @@ function NavBar() {
   };
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <nav className="bg-gray-400 shadow-md px-6 py-4 flex justify-between items-center">
       <Link
         to="/HomePage"
         className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors"

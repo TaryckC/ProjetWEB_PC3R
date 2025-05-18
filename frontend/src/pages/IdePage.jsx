@@ -242,18 +242,24 @@ public class Main {
   };
 
   function handlePostMessage() {
-    fetch(
-      `${BACKEND_URL}/forum/challengeContent/${challenge.titleSlug}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          author: auth.currentUser?.displayName || "anonyme",
-          content: newMessage,
-        }),
-      }
-    )
+    const trimmedMessage = newMessage.trim();
+    if (!trimmedMessage) return;
+
+    const newEntry = {
+      author: auth.currentUser?.displayName || "anonyme",
+      content: trimmedMessage,
+    };
+
+    fetch(`${BACKEND_URL}/forum/challengeContent/${challenge.titleSlug}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newEntry),
+    })
       .then((res) => res.text())
+      .then(() => {
+        setForumMessages((prev) => [...prev, newEntry]);
+        setNewMessage("");
+      })
       .catch((err) => console.error("❌ Erreur POST forum :", err));
   }
 
@@ -284,7 +290,7 @@ public class Main {
     );
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex h-[calc(100vh-1rem)] w-full mt-4">
         {/* Description */}
@@ -330,6 +336,12 @@ public class Main {
                 placeholder="Écris un message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handlePostMessage();
+                  }
+                }}
               />
               <button
                 onClick={handlePostMessage}
@@ -379,6 +391,6 @@ public class Main {
           </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }
