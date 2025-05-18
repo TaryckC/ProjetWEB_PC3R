@@ -36,11 +36,13 @@ type FirebaseService struct {
 
 func InitFireBase() (*FirebaseService, error) {
 	opt := option.WithCredentialsFile(FirebaseKeyPath)
+	log.Printf("🔍 Chargement de la clé Firebase depuis : %s", FirebaseKeyPath)
 	config := &firebase.Config{ProjectID: FirebaseProjectID}
 	app, err := firebase.NewApp(context.Background(), config, opt)
 	if err != nil {
 		return nil, fmt.Errorf("firebase.NewApp failed: %w", err)
 	}
+	log.Println("✅ Clé Firebase acceptée, application initialisée.")
 	log.Println("Connexion à Firebase établie")
 
 	client, err := app.Firestore(context.Background())
@@ -64,8 +66,10 @@ func InitFireBase() (*FirebaseService, error) {
 
 // findChallengeContentBySlug récupère le contenu d'un challenge à partir du titleSlug
 func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error) {
+	log.Printf("🔍 Recherche du challenge avec titleSlug = %s", titleSlug)
 	doc, err := GlobalFirebaseService.Client.Collection(ChallengeContentDoc).Doc(titleSlug).Get(context.Background())
 	if err != nil {
+		log.Printf("❌ Erreur dans findChallengeContentBySlug (Firestore): %v", err)
 		if status.Code(err) == codes.NotFound {
 			return nil, nil
 		}
@@ -73,8 +77,10 @@ func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error
 	}
 	var content map[string]interface{}
 	if err := doc.DataTo(&content); err != nil {
+		log.Printf("❌ Erreur dans findChallengeContentBySlug (Firestore): %v", err)
 		return nil, err
 	}
+	log.Printf("✅ Contenu du challenge trouvé : %+v", content)
 	return content, nil
 }
 

@@ -20,6 +20,7 @@ import (
 func GetChallengeContent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	titleSlug := vars["titleSlug"]
+	log.Printf("📥 Endpoint /challengeContent appelé avec slug = %s", titleSlug)
 	content, err := findChallengeContentBySlug(titleSlug)
 	if err != nil {
 		http.Error(w, "Erreur lors de la récupération des contenus", http.StatusInternalServerError)

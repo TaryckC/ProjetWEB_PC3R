@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"projetweb/backend/backend/database"
 	"projetweb/backend/backend/handlers"
 
@@ -23,7 +24,20 @@ func setUpLeetCodeAPIRoute(r *mux.Router) {
 	r.HandleFunc("/classic-challenges", database.GetAllClassicChallenges).Methods("GET")
 	r.HandleFunc("/classic-challenges/{id}", database.GetClassicChallenge).Methods("GET")
 	r.HandleFunc("/daily-challenge", database.GetTodayChallenge).Methods("GET")
-	r.HandleFunc("/challengeContent/{titleSlug}", database.GetChallengeContent).Methods("GET")
+	r.HandleFunc("/challengeContent/{titleSlug}", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("📥 Requête GET /challengeContent reçue")
+		vars := mux.Vars(r)
+		titleSlug := vars["titleSlug"]
+		log.Printf("🔍 titleSlug extrait : %s", titleSlug)
+
+		log.Printf("📡 Tentative de récupération du contenu pour le challenge : %s", titleSlug)
+
+		database.GetChallengeContent(w, r)
+
+		// Assuming GetChallengeContent writes the response and handles errors internally,
+		// but we add logs inside that function as per instructions.
+		log.Printf("✅ Contenu envoyé pour %s", titleSlug)
+	}).Methods("GET")
 	r.HandleFunc("/challengeContent/{titleSlug}", database.FetchAndStoreChallengeContent).Methods("POST", "OPTIONS")
 }
 
@@ -59,6 +73,12 @@ func main() {
 	setUpForum(r)
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
+	f, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("❌ Impossible d'ouvrir logs.txt : %v", err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
 	log.Fatal(http.ListenAndServe("[::]:8100", r))
 }
 
