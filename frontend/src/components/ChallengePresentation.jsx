@@ -30,7 +30,27 @@ async function fetchChallenges(type) {
 }
 
 function ChallengeCard({ challenge, onClick }) {
-  const data = challenge.question ?? challenge;
+  let data;
+
+  if (challenge.Question) {
+    // Daily challenge
+    data = {
+      ...challenge.Question,
+      title: challenge.Question.Title,
+      difficulty: challenge.Question.Difficulty,
+      acRate: challenge.Question.ACRate,
+    };
+  } else if (challenge.question) {
+    // Classic challenge
+    data = {
+      ...challenge.question,
+      title: challenge.question.title,
+      difficulty: challenge.question.difficulty,
+      acRate: challenge.question.acRate,
+    };
+  } else {
+    data = challenge;
+  }
 
   return (
     <div
@@ -38,12 +58,16 @@ function ChallengeCard({ challenge, onClick }) {
       className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer mb-4"
     >
       <h3 className="text-lg font-semibold text-gray-800">{data.title}</h3>
-      <p className="text-sm text-gray-500">
-        Difficulté : {data.difficulty || "N/A"}
-      </p>
-      <p className="text-sm text-gray-500">
-        Taux de réussite : {data.acRate?.toFixed(2) || "N/A"}%
-      </p>
+      {!challenge.question && (
+        <>
+          <p className="text-sm text-gray-500">
+            Difficulté : {data.difficulty || "N/A"}
+          </p>
+          <p className="text-sm text-gray-500">
+            Taux de réussite : {typeof data.acRate === "number" ? data.acRate.toFixed(2) : "N/A"}%
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -54,9 +78,39 @@ export default function ChallengePresentation() {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const navigate = useNavigate();
 
+  // Chercher dynamiquement la description du daily challenge sélectionné
+  useEffect(() => {
+    if (
+      selectedChallenge &&
+      !selectedChallenge.description &&
+      !selectedChallenge.question // ne pas fetch pour les classic
+    ) {
+      const slug = selectedChallenge.titleSlug || selectedChallenge.TitleSlug;
+      if (!slug) return;
+
+      console.log("📛 Slug utilisé :", selectedChallenge.titleSlug || selectedChallenge.TitleSlug);
+
+      fetch(`https://projetpc3r.alwaysdata.net/challengeContent/${slug}`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("🧪 Description reçue :", data);
+          setSelectedChallenge((prev) => ({
+            ...prev,
+            description: data.description || "<em>Aucune description disponible.</em>",
+          }));
+        })
+        .catch((err) => {
+          console.error("Erreur chargement description:", err);
+        });
+    }
+  }, [selectedChallenge]);
+
   useEffect(() => {
     fetchChallenges(CHALLENGE_TYPES.DAILY.key)
-      .then(setDailyChallenges)
+      .then(data => {
+        console.log("📅 Daily Challenges reçus :", data);
+        setDailyChallenges(data);
+      })
       .catch(console.error);
 
     fetchChallenges(CHALLENGE_TYPES.CLASSIC.key)
@@ -71,9 +125,9 @@ export default function ChallengePresentation() {
         <h2 className="text-xl font-bold text-gray-700 mb-4">
           🗓 Daily Challenge
         </h2>
-        {dailyChallenges.map((c) => (
+        {dailyChallenges.map((c, index) => (
           <ChallengeCard
-            key={c.id}
+            key={`daily-${c.id || c.question?.FrontendID || index}`}
             challenge={c}
             onClick={setSelectedChallenge}
           />
@@ -82,9 +136,9 @@ export default function ChallengePresentation() {
         <h2 className="text-xl font-bold text-gray-700 mt-8 mb-4">
           📘 Classic Challenges
         </h2>
-        {classicChallenges.map((c) => (
+        {classicChallenges.map((c, index) => (
           <ChallengeCard
-            key={c.id}
+            key={`classic-${c.id || c.question?.FrontendID || index}`}
             challenge={c}
             onClick={setSelectedChallenge}
           />
@@ -111,6 +165,7 @@ export default function ChallengePresentation() {
                 __html:
                   selectedChallenge.description ||
                   selectedChallenge.question?.description ||
+                  selectedChallenge.Description ||
                   "<em>Aucune description disponible.</em>",
               }}
             />

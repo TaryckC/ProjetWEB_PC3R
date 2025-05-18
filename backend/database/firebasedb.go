@@ -89,16 +89,28 @@ func findChallengeContentBySlug(titleSlug string) (map[string]interface{}, error
 /**/
 
 func (fs *FirebaseService) WriteDailyChallenge(year int, month int) error {
+	log.Println("🟡 Début de WriteDailyChallenge")
 	challenge, err := leetcodeapi.RequestDailyChallenge(year, month)
 	if err != nil {
 		return fmt.Errorf("LEETCODEAPI : Error fetching daily challenge : %v", err)
 	}
 
+	log.Println("📥 Daily challenge récupéré depuis l'API")
+
 	challengeData := challenge["data"].(map[string]interface{})
 	activeChallenge := challengeData["activeDailyCodingChallengeQuestion"].(map[string]interface{})
-	if fs.writeChallenge(DailyChallengeDoc, Daily_challenge_id, activeChallenge) != nil {
-		return fmt.Errorf("FIREBASE : Error writing daily challenge : %v", err)
+	log.Printf("🔍 Challenge actif extrait : %+v", activeChallenge)
+	if err := fs.writeChallenge(DailyChallengeDoc, Daily_challenge_id, activeChallenge); err != nil {
+		log.Printf("❌ Échec d’écriture du daily challenge : %v", err)
+		return fmt.Errorf("FIREBASE : Error writing daily challenge : %w", err)
 	}
+
+	log.Println("📝 Daily challenge écrit dans Firestore")
+
+	fs.WriteDailyChallengeComplementaryData()
+
+	log.Println("🧩 Données complémentaires du daily challenge ajoutées")
+
 	return nil
 }
 
@@ -146,6 +158,8 @@ func (fs *FirebaseService) UpdateDailyQuestionDescription() error {
 	if err != nil {
 		return fmt.Errorf("FIRESTORE : Failed to update question description: %v", err)
 	}
+
+	log.Println("✅ SUCCÈS : description du challenge écrite dans Firestore")
 
 	return nil
 }

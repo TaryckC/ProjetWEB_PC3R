@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+const BACKEND_URL = "https://projetpc3r.alwaysdata.net";
 import { useParams, useLocation } from "react-router-dom";
 import MonacoEditor from "@monaco-editor/react";
 import { auth } from "../firebaseAuth";
@@ -33,8 +34,6 @@ function extractFunctionName(code, lang) {
     return match?.[1] || "unknown";
   }
 
-  // Ajoute d'autres langages ici si nécessaire...
-
   return "unknown";
 }
 
@@ -54,7 +53,7 @@ export default function IdePage() {
   const sendChallengeContent = async (titleSlug) => {
     try {
       const response = await fetch(
-        `https://projetpc3r.alwaysdata.net/challengeContent/${titleSlug}`,
+        `${BACKEND_URL}/challengeContent/${titleSlug}`,
         {
           method: "POST",
           headers: {
@@ -78,21 +77,17 @@ export default function IdePage() {
             {
               code: snip.code,
               language: snip.lang,
-              funcName: funcName, // dynamique
+              funcName: funcName,
             },
           ];
         })
       );
-
-      console.log("Template : ", templatesRef);
 
       setChallenge({
         title: question.title,
         titleSlug: question.titleSlug,
         description: question.content,
       });
-
-      console.log("Succès:", question);
     } catch (error) {
       console.error("Erreur réseau:", error);
     }
@@ -115,19 +110,16 @@ export default function IdePage() {
   useEffect(() => {
     if (!challenge?.titleSlug) return;
     fetch(
-      `https://projetpc3r.alwaysdata.net/forum/challengeContent/${challenge?.titleSlug}`
+      `${BACKEND_URL}/forum/challengeContent/${challenge?.titleSlug}`
     )
       .then((res) => res.json())
       .then((data) => {
-        console.log("Forum API response :", data);
-        // 👇 ici on vérifie si data.messages est un tableau
         if (Array.isArray(data)) {
-          setForumMessages(data); // cas 1 : le back renvoie déjà un tableau
+          setForumMessages(data);
         } else if (Array.isArray(data.messages)) {
-          setForumMessages(data.messages); // cas 2 : le back renvoie { messages: [...] }
+          setForumMessages(data.messages);
         } else {
-          console.error("Format de réponse forum invalide:", data);
-          setForumMessages([]); // vide par sécurité
+          setForumMessages([]);
         }
       })
       .catch((err) => console.error("Erreur forum:", err));
@@ -144,14 +136,12 @@ export default function IdePage() {
     );
 
     worker.onmessage = function (e) {
-      const extracted = e.data;
-      console.log("Résultat extrait :", extracted);
-      setExamples(extracted);
+      setExamples(e.data);
     };
 
     worker.postMessage(challenge.description);
 
-    return () => worker.terminate(); // bonne pratique pour nettoyer
+    return () => worker.terminate();
   }, [challenge]);
 
   const languageIdMap = {
@@ -177,7 +167,6 @@ export default function IdePage() {
     } else if (lang === "javascript") {
       return declarations.join("\n") + `\nconsole.log(${call});`;
     } else if (lang === "java") {
-      // Java nécessite une méthode main
       const javaDeclarations = varNames.map(
         (name, i) => `var ${name} = ${JSON.stringify(values[i])};`
       );
@@ -192,68 +181,68 @@ public class Main {
         ${javaDeclarations.join("\n        ")}
         ${javaCall}
     }
-}
-`;
+}`;
     }
 
     return "// unsupported language";
   }
 
-  async function runExample(example) {
-    const injected = buildTestCode(
-      language,
-      templatesRef.current[language].funcName,
-      example.input
-    );
-    const fullCode = code + "\n" + injected;
-
+  const runAllExamples = async () => {
+    setOutput("Execution en cours...");
     setLoading(true);
+
+    const submissionList = examples.map((example) => {
+      const injected = buildTestCode(
+        language,
+        templatesRef.current[language].funcName,
+        example.input
+      );
+      return {
+        source_code: code + "\n" + injected,
+        language_id: languageIdMap[language],
+        stdin: "",
+      };
+    });
+
     try {
-      const response = await fetch("https://projetpc3r.alwaysdata.net/compile", {
+      const response = await fetch("/compile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source_code: fullCode,
-          language_id: languageIdMap[language],
-          stdin: "",
-        }),
+        body: JSON.stringify(submissionList),
       });
 
-      const result = await response.json();
-      const actual = result.stdout?.trim() || result.stderr?.trim();
-      return { ...example, actual, pass: actual === example.expected };
+      const judgeResults = await response.json();
+
+      const results = examples.map((example, i) => {
+        const actual =
+          judgeResults[i]?.stdout?.trim() ||
+          judgeResults[i]?.stderr?.trim() ||
+          "";
+        return {
+          ...example,
+          actual,
+          pass: actual === example.expected,
+        };
+      });
+
+      const report = results.map(
+        (ex, i) =>
+          `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${ex.expected
+          }\nActual: ${ex.actual}\nRésultat: ${ex.pass ? "✅ Réussi" : "❌ Échoué"
+          }\n`
+      );
+      setOutput(report.join("\n\n"));
     } catch (err) {
-      return { ...example, actual: "Erreur", pass: false };
+      console.error("Erreur d'exécution batch:", err);
+      setOutput("❌ Erreur lors de l'exécution des tests");
     } finally {
       setLoading(false);
     }
-  }
-
-  const runAllExamples = async () => {
-    setOutput("Execution en cours...");
-    const results = [];
-    for (const example of examples) {
-      const result = await runExample(example);
-      results.push(result);
-      await new Promise((res) => setTimeout(res, 500));
-    }
-    const report = results.map(
-      (ex, i) =>
-        `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${ex.expected
-        }\nActual: ${ex.actual}\nRésultat: ${ex.pass ? "✅ Réussi" : "❌ Échoué"
-        }\n`
-    );
-    setOutput(report.join("\n\n"));
   };
 
   function handlePostMessage() {
-    console.log(
-      "DEBUG — titleSlug utilisé pour POST forum :",
-      challenge.titleSlug
-    );
-
     fetch(
-      `https://projetpc3r.alwaysdata.net/forum/challengeContent/${challenge.titleSlug}`,
+      `${BACKEND_URL}/forum/challengeContent/${challenge.titleSlug}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"projetweb/backend/backend/database"
 	"projetweb/backend/backend/handlers"
 
@@ -60,9 +59,8 @@ func main() {
 		log.Fatalf("Erreur lors de l'initialisation de la base de données : %v", err)
 	}
 	database.GlobalFirebaseService = FirebaseService
-	// FirebaseService.WriteDailyChallenge(2025, 5)
+	FirebaseService.WriteDailyChallenge(2025, 5)
 	// FirebaseService.UpdateDailyQuestionDescription()
-	// FirebaseService.WriteDailyAndWeeklyChallenges(2025, 4)
 	// FirebaseService.WriteChallengeComplementaryData()
 	r := mux.NewRouter()
 	r.Use(middlewareCors)
@@ -71,14 +69,9 @@ func main() {
 	setUpCompilerRoutes(r)
 	setUpNewsRoutes(r)
 	setUpForum(r)
+
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
-	f, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("❌ Impossible d'ouvrir logs.txt : %v", err)
-	}
-	defer f.Close()
-	log.SetOutput(f)
 	log.Fatal(http.ListenAndServe("[::]:8100", r))
 }
 

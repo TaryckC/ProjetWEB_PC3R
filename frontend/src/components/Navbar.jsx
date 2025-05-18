@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseAuth";
 import { useNavigate, Link } from "react-router-dom";
 
 function NavBar() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -45,14 +46,24 @@ function NavBar() {
       </ul>
 
       <div className="flex items-center space-x-4">
-        <button
-          className="text-sm text-red-600 bg-red-300 hover:bg-red-600 hover:text-white transition focus:outline-none rounded-xl px-3 py-2"
-          onClick={handleLogout}
-        >
-          Déconnexion
-        </button>
-        <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-semibold text-white">
-          U
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-semibold text-white"
+            title="Menu utilisateur"
+          >
+            U
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 min-w-[150px] bg-white border rounded shadow-md z-10 py-1">
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+              >
+                🔓 Se déconnecter
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>
