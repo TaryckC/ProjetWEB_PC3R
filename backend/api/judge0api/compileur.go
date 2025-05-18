@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"projetweb/backend/api/utils"
+	"projetweb/backend/backend/api/utils"
 	"time"
 )
 
@@ -17,7 +17,6 @@ func ExecuteCode(code string, languageID int, stdin string) (string, error) {
 	if apiKey == "" || err != nil {
 		return "", fmt.Errorf("clé API Judge0 manquante")
 	}
-
 
 	submission := Submission{
 		SourceCode: utils.ToBase64(code),
@@ -83,8 +82,8 @@ func GetExecutionResult(token string) (ExecutionResult, error) {
 		return ExecutionResult{}, err
 	}
 
-	result.Stdout,_ = utils.FromBase64(result.Stdout)
-	result.Stderr,_ = utils.FromBase64(result.Stderr)
+	result.Stdout, _ = utils.FromBase64(result.Stdout)
+	result.Stderr, _ = utils.FromBase64(result.Stderr)
 
 	return result, nil
 }

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"projetweb/backend/api/utils"
+	"projetweb/backend/backend/api/utils"
 )
 
 func GetNews(topic string) ([]byte, error) {

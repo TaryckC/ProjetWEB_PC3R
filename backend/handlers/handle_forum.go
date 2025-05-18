@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"projetweb/backend/api/utils"
-	"projetweb/backend/database"
+	"projetweb/backend/backend/api/utils"
+	"projetweb/backend/backend/database"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -41,15 +41,13 @@ func PostForumMessage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Post added successfully")
 }
 
-
-
 func GetForumMessages(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	problemID := vars["titleSlug"]
 
 	posts, err := database.GlobalFirebaseService.GetForumMessage(problemID)
 	if err != nil {
-		utils.WriteJSONError(w,  http.StatusInternalServerError, "Error fetching forum posts")
+		utils.WriteJSONError(w, http.StatusInternalServerError, "Error fetching forum posts")
 		return
 	}
 

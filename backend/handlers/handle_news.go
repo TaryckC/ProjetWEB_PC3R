@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	news "projetweb/backend/api/news_api"
-	"projetweb/backend/api/utils"
+	news "projetweb/backend/backend/api/news_api"
+	"projetweb/backend/backend/api/utils"
 )
 
 func HandleNews(w http.ResponseWriter, r *http.Request) {

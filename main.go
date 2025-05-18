@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"projetweb/backend/database"
-	"projetweb/backend/internal/handlers"
+	"projetweb/backend/backend/database"
+	"projetweb/backend/backend/handlers"
 
 	"github.com/gorilla/mux"
 )
@@ -17,18 +16,6 @@ func enableCors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	enableCors(w)
-	if r.Method == "OPTIONS" {
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Hello from Go!",
-	})
 }
 
 func setUpLeetCodeAPIRoute(r *mux.Router) {
@@ -49,7 +36,7 @@ func setUpNewsRoutes(r *mux.Router) {
 }
 func setUpForum(r *mux.Router) {
 	r.HandleFunc("/forum/challengeContent/{titleSlug}", handlers.GetForumMessages).Methods("GET")
-r.HandleFunc("/forum/challengeContent/{titleSlug}", handlers.PostForumMessage).Methods("POST", "OPTIONS")
+	r.HandleFunc("/forum/challengeContent/{titleSlug}", handlers.PostForumMessage).Methods("POST", "OPTIONS")
 }
 
 func main() {

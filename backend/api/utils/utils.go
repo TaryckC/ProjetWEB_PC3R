@@ -15,8 +15,6 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-
-
 func WriteJSONError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -44,7 +42,6 @@ func LoadEnv() {
 		log.Println("clé =", os.Getenv("JUDGE0_API_KEY"))
 	}
 }
-
 
 func GetApiKey() (string, error) {
 	apiKey := os.Getenv("RAPID_API_KEY")

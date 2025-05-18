@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	leetcodeapi "projetweb/backend/api/leetcode_api"
+	leetcodeapi "projetweb/backend/backend/api/leetcode_api"
 	"strconv"
 	"time"
 
@@ -24,7 +24,7 @@ const (
 	FirestoreCollection  = "Challenges"
 	ChallengeContentDoc  = "Challenge_content"
 	FirebaseProjectID    = "pc3rprojet-ce4a7"
-	FirebaseKeyPath      = "keys/serviceAccountKey.json"
+	FirebaseKeyPath      = "backend/keys/serviceAccountKey.json"
 )
 
 var GlobalFirebaseService *FirebaseService
@@ -267,61 +267,56 @@ func (fs *FirebaseService) WriteChallengeComplementaryData() error {
 	return nil
 }
 
-
 type ForumPost struct {
-    Author    string    `json:"author"`
-    Content   string    `json:"content"`
-    CreatedAt time.Time `json:"created_at"`
+	Author    string    `json:"author"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }
+
 func (fs *FirebaseService) PostForumMessage(challengeId string, post ForumPost) error {
-        if challengeId == "" {
-        log.Println("Erreur : challengeId vide dans PostForumMessage")
-        return nil
-    }
+	if challengeId == "" {
+		log.Println("Erreur : challengeId vide dans PostForumMessage")
+		return nil
+	}
 	_, _, err := fs.Client.
-        Collection("Challenge_content").
-        Doc(challengeId).
-        Collection("forum").
-        Add(context.Background(), post)
+		Collection("Challenge_content").
+		Doc(challengeId).
+		Collection("forum").
+		Add(context.Background(), post)
 
-    if err != nil {
-        log.Println("Error adding forum post:", err)
-    }
+	if err != nil {
+		log.Println("Error adding forum post:", err)
+	}
 
-    return err
+	return err
 }
 
 func (fs *FirebaseService) GetForumMessage(challengeId string) ([]ForumPost, error) {
-    if challengeId == "" {
-        log.Println("Erreur : challengeId vide dans PostForumMessage")
-        return nil,nil
-    }
+	if challengeId == "" {
+		log.Println("Erreur : challengeId vide dans PostForumMessage")
+		return nil, nil
+	}
 	ctx := context.Background()
-    docs, err := fs.Client.
-        Collection("Challenge_content").
-        Doc(challengeId).
-        Collection("forum").
-        OrderBy("CreatedAt", firestore.Asc).
-        Documents(ctx).
-        GetAll()
-        
-    if err != nil {
-        log.Println("Error fetching forum posts:", err)
-        return nil, err
-    }
+	docs, err := fs.Client.
+		Collection("Challenge_content").
+		Doc(challengeId).
+		Collection("forum").
+		OrderBy("CreatedAt", firestore.Asc).
+		Documents(ctx).
+		GetAll()
 
-    var posts []ForumPost
-    for _, doc := range docs {
-        var p ForumPost
-        if err := doc.DataTo(&p); err == nil {
-            posts = append(posts, p)
-        }
-    }
+	if err != nil {
+		log.Println("Error fetching forum posts:", err)
+		return nil, err
+	}
 
-    return posts, nil
+	var posts []ForumPost
+	for _, doc := range docs {
+		var p ForumPost
+		if err := doc.DataTo(&p); err == nil {
+			posts = append(posts, p)
+		}
+	}
+
+	return posts, nil
 }
-
-
-
-
-

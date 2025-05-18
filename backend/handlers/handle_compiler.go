@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	compiler "projetweb/backend/api/judge0api"
-	"projetweb/backend/api/utils"
+	compiler "projetweb/backend/backend/api/judge0api"
+	"projetweb/backend/backend/api/utils"
 	"time"
 )
 
