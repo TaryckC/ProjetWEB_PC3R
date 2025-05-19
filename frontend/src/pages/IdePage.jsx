@@ -219,8 +219,6 @@ public class Main {
         let warning = "";
 
         if (actual.includes("None")) {
-          warning =
-            "⚠️ Votre fonction n'a peut-être pas de `return`. Le mot-clé `None` s'affiche par défaut.";
           actual = actual.replace(/\bNone\b/g, "").trim(); // nettoie le "None"
         }
         return {
@@ -236,7 +234,7 @@ public class Main {
             ex.expected
           }\nActual: ${ex.actual}\nRésultat: ${
             ex.pass ? "✅ Réussi" : "❌ Échoué"
-          }\n${ex.warning || ""}`
+          }`
       );
 
       setOutput(report.join("\n\n"));
