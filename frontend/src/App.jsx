@@ -48,6 +48,7 @@ function App() {
         <Route path="/PasswordResetPage" element={<ResetPassword />} />
         <Route path="/LoginPage" element={<Login />} />
         <Route path="/ide/:id" element={<IdePage />} />
+        <Route path="/news" element={<NewsPage />} />
       </Routes>
     </Router>
   );

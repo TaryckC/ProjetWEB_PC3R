@@ -1,5 +1,7 @@
 package news
 
+import "time"
+
 type NewsResponse struct {
 	Articles []struct {
 		Title       string `json:"title"`
@@ -12,4 +14,11 @@ type NewsResponse struct {
 
 type ErrorResponse struct {
 	Error string `json:"error"`
+}
+
+
+
+type cacheEntry struct {
+	data      []byte
+	timestamp time.Time
 }

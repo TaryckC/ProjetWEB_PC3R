@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseAuth";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function NavBar() {
   const navigate = useNavigate();
@@ -11,9 +12,9 @@ function NavBar() {
     try {
       await signOut(auth);
       navigate("/LoginPage");
-      alert("Déconnexion réussie !");
+      toast.success("Déconnexion réussie !");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -26,6 +27,20 @@ function NavBar() {
         ProjetPC3R
       </Link>
 
+      <div className="flex space-x-4">
+        <Link
+          to="/news"
+          className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+        >
+          News
+        </Link>
+        <Link
+          to="/HomePage"
+          className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+        >
+          Challenges
+        </Link>
+      </div>
       <div className="flex items-center space-x-4">
         <div className="relative">
           <button

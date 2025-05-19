@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	news "projetweb/backend/backend/api/news_api"
 	"projetweb/backend/backend/database"
 	"projetweb/backend/backend/handlers"
 	"time"
@@ -41,6 +42,7 @@ func setUpForum(r *mux.Router) {
 }
 
 func main() {
+	topics := []string{"technology", "programming", "cybersecurity"}
 	var err error
 	FirebaseService, err = database.InitFireBase()
 	if err != nil {
@@ -58,7 +60,7 @@ func main() {
 	setUpNewsRoutes(r)
 	setUpForum(r)
 	go scheduleDailyChallenge()
-
+	news.RefreshTopicsPeriodically(topics)
 	fmt.Println("Server running on http://localhost:8080")
 	defer FirebaseService.Client.Close()
 	log.Fatal(http.ListenAndServe("[::]:8100", r))
