@@ -8,7 +8,7 @@ function NewsSection({ topic = "technology" }) {
     fetch(`https://projetpc3r.alwaysdata.net/news?topic=${topic}`)
       .then((res) => res.json())
       .then((data) => {
-        setArticles(data.articles || []);
+        setArticles(data.data || []); // ✅ correction ici
         setLoading(false);
       })
       .catch((err) => {
@@ -17,7 +17,8 @@ function NewsSection({ topic = "technology" }) {
       });
   }, [topic]);
 
-  if (loading) return <p>Chargement des news...</p>;
+  if (loading) return <p>Chargement des actualités...</p>;
+  if (!articles.length) return <p>Aucune actualité disponible.</p>;
 
   return (
     <div className="space-y-4">
@@ -31,7 +32,7 @@ function NewsSection({ topic = "technology" }) {
           >
             {article.title}
           </a>
-          <p className="text-sm text-gray-600">{article.description}</p>
+          <p className="text-sm text-gray-600">{article.excerpt}</p>
         </div>
       ))}
     </div>
