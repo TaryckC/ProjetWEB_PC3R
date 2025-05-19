@@ -204,26 +204,33 @@ public class Main {
     });
 
     try {
-      const response = await fetch(
-        "https://projetpc3r.alwaysdata.net/compile",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(submissionList),
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/compile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionList),
+      });
 
       const judgeResults = await response.json();
 
       const results = examples.map((example, i) => {
-        const actual =
-          judgeResults[i]?.stdout?.trim() ||
-          judgeResults[i]?.stderr?.trim() ||
-          "";
+        const raw = judgeResults[i];
+        let actual =
+          raw?.output?.stdout?.trim() || raw?.output?.stderr?.trim() || "";
+        let warning = "";
+
+        if (actual.includes("None")) {
+          warning =
+            "⚠️ Votre fonction n'a peut-être pas de `return`. Le mot-clé `None` s'affiche par défaut.";
+          actual = actual.replace(/\bNone\b/g, "").trim();
+        }
+
+        const pass = actual === example.expected;
+
         return {
           ...example,
           actual,
-          pass: actual === example.expected,
+          pass,
+          warning,
         };
       });
 
@@ -233,8 +240,9 @@ public class Main {
             ex.expected
           }\nActual: ${ex.actual}\nRésultat: ${
             ex.pass ? "✅ Réussi" : "❌ Échoué"
-          }\n`
+          }\n${ex.warning || ""}`
       );
+
       setOutput(report.join("\n\n"));
     } catch (err) {
       console.error("Erreur d'exécution batch:", err);
@@ -390,8 +398,16 @@ public class Main {
             />
           </div>
 
-          <div className="bg-black text-green-400 p-4 rounded text-sm font-mono overflow-x-auto">
-            <p className="mb-1 font-semibold">Résultat :</p>
+          <div className="bg-black text-green-400 p-4 rounded text-sm font-mono overflow-x-auto relative">
+            <div className="flex justify-between items-center mb-1">
+              <p className="font-semibold">Résultat :</p>
+              <button
+                onClick={() => setOutput("")}
+                className="text-red-400 text-xs bg-gray-800 border border-red-400 px-2 py-1 rounded hover:bg-red-600 hover:text-white transition"
+              >
+                Effacer
+              </button>
+            </div>
             <pre>{output}</pre>
           </div>
         </main>
