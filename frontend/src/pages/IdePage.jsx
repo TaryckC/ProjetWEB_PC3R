@@ -214,31 +214,19 @@ public class Main {
 
       const results = examples.map((example, i) => {
         const raw = judgeResults[i];
-        let actual = "";
+        let actual =
+          raw?.output?.stdout?.trim() || raw?.output?.stderr?.trim() || "";
         let warning = "";
 
-        if (raw?.output) {
-          actual =
-            raw.output.stdout?.trim() ||
-            raw.output.stderr?.trim() ||
-            "❌ Aucun résultat retourné.";
-
-          if (actual.includes("None")) {
-            warning =
-              "⚠️ Votre fonction n'a peut-être pas de `return`. Le mot-clé `None` s'affiche par défaut.";
-            actual = actual.replace(/\bNone\b/g, "").trim();
-          }
-        } else {
-          actual = "❌ Aucun champ `output` trouvé dans la réponse.";
+        if (actual.includes("None")) {
+          warning =
+            "⚠️ Votre fonction n'a peut-être pas de `return`. Le mot-clé `None` s'affiche par défaut.";
+          actual = actual.replace(/\bNone\b/g, "").trim(); // nettoie le "None"
         }
-
-        const pass = actual === example.expected;
-
         return {
           ...example,
           actual,
-          pass,
-          warning,
+          pass: actual === example.expected,
         };
       });
 
