@@ -250,7 +250,7 @@ public class Main {
     if (!trimmedMessage) return;
 
     const newEntry = {
-      author: auth.currentUser?.displayName || "anonyme",
+      author: auth.currentUser?.displayName || auth.currentUser?.email,
       content: trimmedMessage,
     };
 
