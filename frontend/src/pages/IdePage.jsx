@@ -250,7 +250,8 @@ public class Main {
     if (!trimmedMessage) return;
 
     const newEntry = {
-      author: auth.currentUser?.displayName || auth.currentUser?.email,
+      author:
+        auth.currentUser?.displayName || auth.currentUser?.email.split("@")[0],
       content: trimmedMessage,
     };
 
