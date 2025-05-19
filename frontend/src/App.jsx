@@ -13,6 +13,7 @@ import IDE from "./pages/IdePage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import IdePage from "./pages/IdePage";
+import NewsPage from "./pages/NewsPage";
 function App() {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
