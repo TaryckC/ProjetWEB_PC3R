@@ -5,7 +5,7 @@ function NewsSection({ topic = "technology" }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/news?topic=${topic}`)
+    fetch(`https://projetpc3r.alwaysdata.net/news?topic=${topic}`)
       .then((res) => res.json())
       .then((data) => {
         setArticles(data.articles || []);
