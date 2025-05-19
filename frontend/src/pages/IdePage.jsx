@@ -110,9 +110,7 @@ export default function IdePage() {
 
   useEffect(() => {
     if (!challenge?.titleSlug) return;
-    fetch(
-      `${BACKEND_URL}/forum/challengeContent/${challenge?.titleSlug}`
-    )
+    fetch(`${BACKEND_URL}/forum/challengeContent/${challenge?.titleSlug}`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -206,11 +204,14 @@ public class Main {
     });
 
     try {
-      const response = await fetch("/compile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submissionList),
-      });
+      const response = await fetch(
+        "https://projetpc3r.alwaysdata.net/compile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(submissionList),
+        }
+      );
 
       const judgeResults = await response.json();
 
@@ -228,8 +229,10 @@ public class Main {
 
       const report = results.map(
         (ex, i) =>
-          `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${ex.expected
-          }\nActual: ${ex.actual}\nRésultat: ${ex.pass ? "✅ Réussi" : "❌ Échoué"
+          `Cas ${i + 1} :\nInput: ${JSON.stringify(ex.input)}\nExpected: ${
+            ex.expected
+          }\nActual: ${ex.actual}\nRésultat: ${
+            ex.pass ? "✅ Réussi" : "❌ Échoué"
           }\n`
       );
       setOutput(report.join("\n\n"));
@@ -310,7 +313,9 @@ public class Main {
           </button>
 
           <section className="mt-8">
-            <h2 className="text-lg font-semibold mb-2">💬 Forum du challenge</h2>
+            <h2 className="text-lg font-semibold mb-2">
+              💬 Forum du challenge
+            </h2>
 
             <div className="bg-gray-100 p-4 rounded max-h-60 overflow-y-auto mb-4">
               {forumMessages.length === 0 ? (
