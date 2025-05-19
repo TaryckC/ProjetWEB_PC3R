@@ -1872,7 +1872,7 @@ public class Main {
         ${ae}
     }
 }`}return"// unsupported language"}const ce=async()=>{C("Execution en cours..."),H(!0);const T=W.map(w=>{const x=re(h,c.current[h].funcName,w.input);return{source_code:v+`
-`+x,language_id:se[h],stdin:""}});try{const x=await(await fetch("/compile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(T)})).json(),R=W.map((Se,oe)=>{var ae,ue,be,D;const B=((ue=(ae=x[oe])==null?void 0:ae.stdout)==null?void 0:ue.trim())||((D=(be=x[oe])==null?void 0:be.stderr)==null?void 0:D.trim())||"";return{...Se,actual:B,pass:B===Se.expected}}).map((Se,oe)=>`Cas ${oe+1} :
+`+x,language_id:se[h],stdin:""}});try{const x=await(await fetch("https://projetpc3r.alwaysdata.net/compile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(T)})).json(),R=W.map((Se,oe)=>{var ae,ue,be,D;const B=((ue=(ae=x[oe])==null?void 0:ae.stdout)==null?void 0:ue.trim())||((D=(be=x[oe])==null?void 0:be.stderr)==null?void 0:D.trim())||"";return{...Se,actual:B,pass:B===Se.expected}}).map((Se,oe)=>`Cas ${oe+1} :
 Input: ${JSON.stringify(Se.input)}
 Expected: ${Se.expected}
 Actual: ${Se.actual}
