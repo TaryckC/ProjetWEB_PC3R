@@ -89,42 +89,6 @@ func GetExecutionResult(token string) (ExecutionResult, error) {
 	return result, nil
 }
 
-// func HandleCompiler(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodPost {
-// 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
-// 		return
-// 	}
-
-// 	var req Submission
-// 	err := json.NewDecoder(r.Body).Decode(&req)
-// 	if err != nil {
-// 		http.Error(w, "JSON invalide", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	sourceCodeEncoded := utils.ToBase64(req.SourceCode)
-// 	stdin := utils.ToBase64(req.Stdin)
-
-// 	token, err := ExecuteCode(sourceCodeEncoded, req.LanguageID, stdin)
-// 	if err != nil {
-// 		http.Error(w, "Erreur lors de la soumission : "+err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	// Attendre que l’exécution soit prête (car wait=false)
-// 	time.Sleep(10 * time.Second)
-
-// 	// Récupérer le résultat
-// 	result, err := GetExecutionResult(token)
-// 	if err != nil {
-// 		http.Error(w, "Erreur lors de la récupération : "+err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	// Répondre au frontend
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(result)
-// }
 
 // pollForResult interroge l'API Judge0 toutes les secondes jusqu'à obtenir un résultat final.
 // Elle retourne une erreur si le résultat est toujours en attente après le timeout.
@@ -233,7 +197,6 @@ func BatchPollResults(tokens []string) ([]ExecutionResult, error) {
 		defer resp.Body.Close()
 
 		body, _ := io.ReadAll(resp.Body)
-		fmt.Println("Batch GET response:", string(body))
 
 		var batchResp BatchResultResponse
 		err = json.Unmarshal(body, &batchResp)

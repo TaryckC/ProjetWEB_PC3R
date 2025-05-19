@@ -215,8 +215,7 @@ public class Main {
       const results = examples.map((example, i) => {
         const raw = judgeResults[i];
         let actual =
-          raw?.output?.stdout?.trim() || raw?.output?.stderr?.trim() || "";
-        let warning = "";
+          raw?.stdout?.trim() || raw?.stderr?.trim() || "❌ Aucun résultat";
 
         if (actual.includes("None")) {
           actual = actual.replace(/\bNone\b/g, "").trim(); // nettoie le "None"
