@@ -20,27 +20,38 @@ function NavBar() {
 
   return (
     <nav className="bg-gray-400 shadow-md px-6 py-4 flex justify-between items-center">
-      <Link
-        to="/HomePage"
-        className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors"
-      >
-        ProjetPC3R
-      </Link>
-
-      <div className="flex space-x-4">
-        <Link
-          to="/news"
-          className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
-        >
-          News
-        </Link>
+      <div className="flex items-center space-x-8">
         <Link
           to="/HomePage"
-          className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+          className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors"
         >
-          Challenges
+          ProjetPC3R
         </Link>
+
+        {/* Liens vers les pages */}
+        <div className="flex space-x-4">
+          <Link
+            to="/news"
+            className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+          >
+            News
+          </Link>
+          <Link
+            to="/challenges"
+            className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+          >
+            Challenges
+          </Link>
+          <Link
+            to="/discussions"
+            className="text-gray-800 font-medium hover:text-blue-600 transition-colors"
+          >
+            Discussions
+          </Link>
+        </div>
       </div>
+
+      {/* Menu utilisateur (inchangé) */}
       <div className="flex items-center space-x-4">
         <div className="relative">
           <button
